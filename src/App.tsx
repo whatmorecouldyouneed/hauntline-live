@@ -1,14 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { DesktopGate } from "./app/screens/DesktopGate"
 import { Home } from "./app/screens/Home"
-import {
-  PlayersSetup,
-  type PlayerInput,
-} from "./app/screens/PlayersSetup"
+import { PlayersSetup } from "./app/screens/PlayersSetup"
+import type { Player } from "./types/game"
 import { TurnIntro } from "./app/screens/TurnIntro"
 import { GameRun } from "./app/screens/GameRun"
 import { Death } from "./app/screens/Death"
 import { Results } from "./app/screens/Results"
+import { ARScreen } from "./app/screens/ARScreen"
 import "./App.css"
 
 // TODO: online room state sync
@@ -20,10 +19,11 @@ type Screen =
   | "game"
   | "death"
   | "results"
+  | "ar"
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home")
-  const [players, setPlayers] = useState<PlayerInput[]>([])
+  const [players, setPlayers] = useState<Player[]>([])
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
   const [lastTime, setLastTime] = useState(0)
 
@@ -40,7 +40,11 @@ export default function App() {
     setCurrentPlayerIndex(0)
   }, [])
 
-  const startGame = useCallback((newPlayers: PlayerInput[]) => {
+  const goAR = useCallback(() => {
+    setScreen("ar")
+  }, [])
+
+  const startGame = useCallback((newPlayers: Player[]) => {
     setPlayers(newPlayers)
     setCurrentPlayerIndex(0)
     setScreen("turnIntro")
@@ -99,7 +103,7 @@ export default function App() {
   return (
     <DesktopGate>
       <div className="app">
-        {screen === "home" && <Home onPlay={goSetup} />}
+        {screen === "home" && <Home onPlay={goSetup} onAR={goAR} />}
         {screen === "setup" && (
           <PlayersSetup onStart={startGame} onBack={goHome} />
         )}
@@ -129,6 +133,9 @@ export default function App() {
             onRematch={handleRematch}
             onNewMatch={goHome}
           />
+        )}
+        {screen === "ar" && (
+          <ARScreen onBack={goHome} />
         )}
       </div>
     </DesktopGate>

@@ -1,12 +1,8 @@
 import { useState } from "react"
-
-export interface PlayerInput {
-  name: string
-  bestMs: number
-}
+import type { Player } from "../../types/game"
 
 interface PlayersSetupProps {
-  onStart: (players: PlayerInput[]) => void
+  onStart: (players: Player[]) => void
   onBack: () => void
 }
 
@@ -35,7 +31,7 @@ export function PlayersSetup({ onStart, onBack }: PlayersSetupProps) {
 
   const handleSubmit = () => {
     if (!allFilled) return
-    const players = names.slice(0, count).map((n) => ({
+    const players: Player[] = names.slice(0, count).map((n) => ({
       name: n.trim(),
       bestMs: 0,
     }))

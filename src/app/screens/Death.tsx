@@ -1,3 +1,5 @@
+import { toScore } from "../../utils/score"
+
 interface DeathProps {
   playerName: string
   timeSurvived: number
@@ -6,10 +8,6 @@ interface DeathProps {
   onNextPlayer: () => void
   onRetry: () => void
   onSeeResults: () => void
-}
-
-function toScore(sec: number): number {
-  return Math.floor(sec * 10)
 }
 
 export function Death({

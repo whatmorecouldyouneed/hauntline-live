@@ -1,12 +1,9 @@
 import { useState } from "react"
 import { GameCanvas } from "../../game/GameCanvas"
+import { toScore } from "../../utils/score"
 
 interface GameRunProps {
   onDeath: (elapsed: number) => void
-}
-
-function toScore(sec: number): number {
-  return Math.floor(sec * 10)
 }
 
 export function GameRun({ onDeath }: GameRunProps) {

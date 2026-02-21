@@ -1,16 +1,10 @@
-export interface ResultPlayer {
-  name: string
-  bestMs: number
-}
+import { toScore } from "../../utils/score"
+import type { Player } from "../../types/game"
 
 interface ResultsProps {
-  players: ResultPlayer[]
+  players: Player[]
   onRematch: () => void
   onNewMatch: () => void
-}
-
-function toScore(sec: number): number {
-  return Math.floor(sec * 10)
 }
 
 export function Results({ players, onRematch, onNewMatch }: ResultsProps) {

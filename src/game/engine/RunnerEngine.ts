@@ -1,9 +1,10 @@
 /**
  * pure simulation engine for the endless runner.
  * no three.js dependency — testable in isolation.
+ * deterministic when given a seed (uses Mulberry32 PRNG).
  *
  * TODO: MindAR marker scan-to-spawn (P1–P4 unique printed markers)
- * TODO: deterministic seed + startTime for online rooms
+ * TODO: online rooms — pass shared seed + startTime from server
  */
 
 export interface Obstacle {
@@ -23,7 +24,26 @@ export interface RunnerState {
   alive: boolean
 }
 
-// physics constants
+export interface RunnerEngineOptions {
+  seed?: number
+  tickRate?: number
+}
+
+// mulberry32 PRNG: deterministic, same seed = same sequence on every device
+class Mulberry32 {
+  private state: number
+  constructor(seed: number) {
+    this.state = seed >>> 0
+  }
+  next(): number {
+    let t = (this.state += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// physics
 const GRAVITY = -18
 const JUMP_VELOCITY = 8
 const GROUND_Y = 0
@@ -49,7 +69,8 @@ const OBSTACLE_HEIGHT_MIN = 0.6
 const OBSTACLE_HEIGHT_MAX = 1.4
 const OBSTACLE_DEPTH = 1.5
 
-let nextObstacleId = 0
+// default fixed timestep: 60Hz
+const DEFAULT_TICK_RATE = 60
 
 export class RunnerEngine {
   private playerY = GROUND_Y
@@ -58,22 +79,46 @@ export class RunnerEngine {
   private speed = BASE_SPEED
   private spawnTimer = 0
   private elapsed = 0
+  private nextObstacleId = 0
+  private rng: Mulberry32
+  private tickDt: number
+  private accumulator = 0
   alive = true
+
+  constructor(options?: RunnerEngineOptions) {
+    const seed = options?.seed ?? Date.now()
+    const tickRate = options?.tickRate ?? DEFAULT_TICK_RATE
+    this.rng = new Mulberry32(seed)
+    this.tickDt = 1 / tickRate
+  }
 
   jump(): void {
     if (!this.alive) return
-    // can only jump when near ground
     if (this.playerY <= GROUND_Y + 0.01) {
       this.velocityY = JUMP_VELOCITY
     }
   }
 
-  update(dt: number): void {
+  /**
+   * advances simulation by realDt seconds using fixed-timestep stepping.
+   * ensures deterministic results regardless of frame rate.
+   */
+  update(realDt: number): void {
     if (!this.alive) return
 
+    this.accumulator += Math.min(realDt, 0.1)
+
+    while (this.accumulator >= this.tickDt) {
+      this.tick(this.tickDt)
+      this.accumulator -= this.tickDt
+      if (!this.alive) return
+    }
+  }
+
+  private tick(dt: number): void {
     this.elapsed += dt
 
-    // difficulty ramp: speed increases, spawn interval decreases
+    // difficulty ramp
     const ramp = Math.min(1, this.elapsed / RAMP_DURATION)
     this.speed = BASE_SPEED + (MAX_SPEED - BASE_SPEED) * ramp
     const spawnInterval =
@@ -88,7 +133,7 @@ export class RunnerEngine {
       this.velocityY = 0
     }
 
-    // move obstacles toward camera (positive z toward player)
+    // move obstacles toward camera
     for (let i = this.obstacles.length - 1; i >= 0; i--) {
       const o = this.obstacles[i]
       o.z += this.speed * dt
@@ -97,14 +142,14 @@ export class RunnerEngine {
       }
     }
 
-    // spawn new obstacles
+    // spawn
     this.spawnTimer += dt
     if (this.spawnTimer >= spawnInterval) {
       this.spawnTimer -= spawnInterval
       this.obstacles.push(this.createObstacle())
     }
 
-    // collision: obstacle in danger zone, same lane (x overlap), player below jump threshold
+    // collision
     for (const o of this.obstacles) {
       if (o.z < DANGER_Z_MIN || o.z > DANGER_Z_MAX) continue
       const oxMin = o.x - o.width / 2
@@ -120,10 +165,11 @@ export class RunnerEngine {
   }
 
   private createObstacle(): Obstacle {
-    const height = OBSTACLE_HEIGHT_MIN +
-      Math.random() * (OBSTACLE_HEIGHT_MAX - OBSTACLE_HEIGHT_MIN)
+    const height =
+      OBSTACLE_HEIGHT_MIN +
+      this.rng.next() * (OBSTACLE_HEIGHT_MAX - OBSTACLE_HEIGHT_MIN)
     return {
-      id: nextObstacleId++,
+      id: this.nextObstacleId++,
       x: PLAYER_X,
       z: SPAWN_Z,
       width: OBSTACLE_WIDTH,
@@ -146,13 +192,18 @@ export class RunnerEngine {
     return this.elapsed
   }
 
-  reset(): void {
+  reset(seed?: number): void {
     this.playerY = GROUND_Y
     this.velocityY = 0
     this.obstacles = []
     this.speed = BASE_SPEED
     this.spawnTimer = 0
     this.elapsed = 0
+    this.accumulator = 0
+    this.nextObstacleId = 0
     this.alive = true
+    if (seed !== undefined) {
+      this.rng = new Mulberry32(seed)
+    }
   }
 }
