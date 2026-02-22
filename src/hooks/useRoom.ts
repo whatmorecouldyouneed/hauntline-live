@@ -38,7 +38,8 @@ export function useRoom(roomId: string | null): UseRoomReturn {
       setLastEvent(msg)
 
       if (msg.type === "state") {
-        setRoomState(msg.state)
+        // ensure new reference so React/react-query sees the update and merge effect runs
+        setRoomState(JSON.parse(JSON.stringify(msg.state)))
       }
     })
 

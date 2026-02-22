@@ -38,7 +38,7 @@ export default class HauntlineServer implements Party.Server {
     const msg = JSON.parse(message)
 
     switch (msg.type) {
-      case "join": {
+      case "join":
         this.state.players[sender.id] = {
           name: msg.name,
           targetIndex: msg.targetIndex,
@@ -46,65 +46,16 @@ export default class HauntlineServer implements Party.Server {
           alive: true,
           score: 0,
         }
-        // #region agent log
-        const joinPlayers = Object.values(this.state.players)
-        fetch("http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "12be76" },
-          body: JSON.stringify({
-            sessionId: "12be76",
-            location: "party/index.ts:join",
-            message: "join received",
-            data: {
-              senderId: sender.id,
-              name: msg.name,
-              targetIndex: msg.targetIndex,
-              playerCount: joinPlayers.length,
-              players: joinPlayers.map((p) => ({ name: p.name, targetIndex: p.targetIndex })),
-            },
-            timestamp: Date.now(),
-            hypothesisId: "H1_H2",
-          }),
-        }).catch(() => {})
-        // #endregion
         this.broadcast({ type: "state", state: this.state })
         break
-      }
 
       case "ready": {
         if (this.state.players[sender.id]) {
           this.state.players[sender.id].ready = true
         }
         const players = Object.values(this.state.players)
-        const allReady = players.every((p) => p.ready)
-        const readyCount = players.filter((p) => p.ready).length
-        // #region agent log
-        fetch("http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "12be76" },
-          body: JSON.stringify({
-            sessionId: "12be76",
-            location: "party/index.ts:ready",
-            message: "ready received",
-            data: {
-              senderId: sender.id,
-              playerCount: players.length,
-              readyCount,
-              allReady,
-              willStart: players.length >= 2 && allReady,
-              players: players.map((p) => ({
-                name: p.name,
-                targetIndex: p.targetIndex,
-                ready: p.ready,
-              })),
-            },
-            timestamp: Date.now(),
-            hypothesisId: "H1_H5",
-          }),
-        }).catch(() => {})
-        // #endregion
         // require at least 2 players and all ready before starting
-        if (players.length >= 2 && allReady) {
+        if (players.length >= 2 && players.every((p) => p.ready)) {
           this.state.phase = "playing"
           this.state.startTime = Date.now()
           this.broadcast({
