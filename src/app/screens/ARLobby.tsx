@@ -35,6 +35,11 @@ export function ARLobby({
 
   return (
     <div className="ar-overlay ar-lobby">
+      {!singlePlayerAR && (
+        <p className="ar-lobby-rules">
+          everyone must ready. when you die, spectate until all players are out.
+        </p>
+      )}
       <div className="ar-player-cards">
         {visible.map((p) => (
           <div

@@ -255,9 +255,11 @@ export function ARScreen({
         const next = prev.map((s) =>
           s.targetIndex === targetIndex ? { ...s, alive: false, score: scoreSeconds } : s
         )
-        const detected = next.filter((s) => s.detected)
-        if (detected.length > 0 && detected.every((s) => !s.alive)) {
-          setPhase("results")
+        if (singlePlayerAR) {
+          const detected = next.filter((s) => s.detected)
+          if (detected.length > 0 && detected.every((s) => !s.alive)) {
+            setPhase("results")
+          }
         }
         return next
       })
@@ -294,14 +296,16 @@ export function ARScreen({
 
   useEffect(() => {
     if (phase !== "results" || hasSubmittedScoreRef.current) return
-    const localSlot = slots[0]
-    if (localSlot?.name?.trim()) {
+    const mySlot = slots.find((s) => s.detected) ?? slots[0]
+    if (mySlot?.name?.trim()) {
       hasSubmittedScoreRef.current = true
-      submitScore(localSlot.name.trim(), toScore(localSlot.score)).catch(() => {})
+      submitScore(mySlot.name.trim(), toScore(mySlot.score)).catch(() => {})
     }
   }, [phase, slots])
 
   const detectedCount = slots.filter((s) => s.detected).length
+  const localSlot = slots.find((s) => s.detected) ?? slots[0]
+  const isSpectating = !singlePlayerAR && phase === "playing" && localSlot && !localSlot.alive
 
   return (
     <div className="screen ar-screen">
@@ -379,7 +383,20 @@ export function ARScreen({
 
       {phase === "playing" && (
         <div className="ar-playing-score">
-          <span className="hud-score">{toScore(slots[0]?.score ?? 0)}</span>
+          {isSpectating ? (
+            <>
+              <span className="hud-score dead">Dead — {toScore(localSlot?.score ?? 0)}</span>
+              <span className="ar-spectate-label">spectating</span>
+            </>
+          ) : (
+            <span className="hud-score">{toScore(localSlot?.score ?? 0)}</span>
+          )}
+        </div>
+      )}
+
+      {isSpectating && (
+        <div className="ar-spectate-overlay">
+          <p>you died — spectating</p>
         </div>
       )}
 
