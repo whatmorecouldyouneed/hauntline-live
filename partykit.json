@@ -1,4 +1,8 @@
 {
   "name": "hauntline-live",
-  "main": "party/index.ts"
+  "main": "party/index.ts",
+  "compatibilityDate": "2026-02-22",
+  "parties": {
+    "leaderboard": "party/leaderboard.ts"
+  }
 }

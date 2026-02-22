@@ -5,9 +5,15 @@ interface ResultsProps {
   players: Player[]
   onRematch: () => void
   onNewMatch: () => void
+  onViewLeaderboard?: () => void
 }
 
-export function Results({ players, onRematch, onNewMatch }: ResultsProps) {
+export function Results({
+  players,
+  onRematch,
+  onNewMatch,
+  onViewLeaderboard,
+}: ResultsProps) {
   const sorted = [...players].sort((a, b) => b.bestMs - a.bestMs)
 
   return (
@@ -23,6 +29,15 @@ export function Results({ players, onRematch, onNewMatch }: ResultsProps) {
         ))}
       </ol>
       <div className="screen-actions">
+        {onViewLeaderboard && (
+          <button
+            type="button"
+            onClick={onViewLeaderboard}
+            className="btn btn-secondary"
+          >
+            Leaderboard
+          </button>
+        )}
         <button type="button" onClick={onNewMatch} className="btn btn-secondary">
           New Match
         </button>

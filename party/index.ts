@@ -94,6 +94,17 @@ export default class HauntlineServer implements Party.Server {
         }
         break
       }
+
+      case "rematch": {
+        for (const p of Object.values(this.state.players)) {
+          p.ready = false
+          p.alive = true
+          p.score = 0
+        }
+        this.state.phase = "lobby"
+        this.broadcast({ type: "state", state: this.state })
+        break
+      }
     }
   }
 

@@ -391,6 +391,13 @@
   box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
+.name-input-error {
+  color: #ff6666;
+  font-size: 0.875rem;
+  margin: -0.5rem 0 0;
+  text-align: center;
+}
+
 .screen-actions {
   display: flex;
   gap: 1rem;
@@ -666,6 +673,18 @@ body:has(.game-run) {
 .leaderboard-row .score {
   color: #00ff88;
   font-weight: 500;
+}
+
+.leaderboard-loading,
+.leaderboard-error,
+.leaderboard-empty {
+  color: #888;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.leaderboard-error {
+  color: #ff6666;
 }
 
 /* ar screen — override .screen flex layout completely */

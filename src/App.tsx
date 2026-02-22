@@ -9,6 +9,7 @@ import { JoinRoom } from "./app/screens/JoinRoom"
 import { GameRun } from "./app/screens/GameRun"
 import { Death } from "./app/screens/Death"
 import { Results } from "./app/screens/Results"
+import { Leaderboard } from "./app/screens/Leaderboard"
 import { ARHowToPlay } from "./app/screens/ARHowToPlay"
 import { ARScreen } from "./app/screens/ARScreen"
 import type { Player } from "./types/game"
@@ -28,6 +29,7 @@ type Screen =
   | "arHowToPlay"
   | "ar"
   | "results"
+  | "leaderboard"
 
 const PLAYER_NAME_KEY = "hauntline-player-name"
 
@@ -71,6 +73,10 @@ export default function App() {
     setRoomCode(null)
     setLastScore(0)
     setPlayers([])
+  }, [])
+
+  const goToLeaderboard = useCallback(() => {
+    setScreen("leaderboard")
   }, [])
 
   const goToModeSelect = useCallback(() => {
@@ -161,7 +167,7 @@ export default function App() {
     <DesktopGate>
       <div className="app">
         {screen === "home" && (
-          <Home onPlay={goName} />
+          <Home onPlay={goName} onViewLeaderboard={goToLeaderboard} />
         )}
         {screen === "name" && (
           <NameInput
@@ -207,6 +213,7 @@ export default function App() {
             timeSurvived={lastScore}
             onRetry={handleRetry}
             onModeSelect={goToModeSelect}
+            onViewLeaderboard={goToLeaderboard}
           />
         )}
         {screen === "results" && (
@@ -214,6 +221,7 @@ export default function App() {
             players={players}
             onRematch={handleRematch}
             onNewMatch={goHome}
+            onViewLeaderboard={goToLeaderboard}
           />
         )}
         {screen === "ar" && (
@@ -222,7 +230,11 @@ export default function App() {
             roomCode={roomCode}
             singlePlayerAR={!roomCode}
             onBack={goHome}
+            onViewLeaderboard={goToLeaderboard}
           />
+        )}
+        {screen === "leaderboard" && (
+          <Leaderboard onBack={goHome} />
         )}
       </div>
     </DesktopGate>

@@ -1,4 +1,7 @@
 import { useState } from "react"
+import { Filter } from "bad-words"
+
+const profanityFilter = new Filter()
 
 interface NameInputProps {
   initialName?: string
@@ -8,10 +11,17 @@ interface NameInputProps {
 
 export function NameInput({ initialName = "", onSubmit, onBack }: NameInputProps) {
   const [name, setName] = useState(initialName)
+  const [error, setError] = useState("")
 
   const handleSubmit = () => {
-    if (!name.trim()) return
-    onSubmit(name.trim())
+    setError("")
+    const trimmed = name.trim()
+    if (!trimmed) return
+    if (profanityFilter.isProfane(trimmed)) {
+      setError("Please choose a different name")
+      return
+    }
+    onSubmit(trimmed)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -25,11 +35,15 @@ export function NameInput({ initialName = "", onSubmit, onBack }: NameInputProps
         type="text"
         placeholder="enter name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value)
+          setError("")
+        }}
         onKeyDown={handleKeyDown}
         className="name-input"
         autoFocus
       />
+      {error && <p className="name-input-error">{error}</p>}
       <div className="screen-actions">
         <button type="button" onClick={onBack} className="btn btn-secondary">
           Back

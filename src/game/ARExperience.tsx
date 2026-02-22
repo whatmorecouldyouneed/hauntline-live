@@ -38,6 +38,9 @@ interface ARExperienceProps {
   onScoreUpdate: (targetIndex: number, score: number) => void
   playerSlots: { targetIndex: number; detected: boolean }[]
   recenterSignal?: number
+  /** ref updated when remote player jumps; engine for that targetIndex will jump */
+  remoteJumpsRef?: React.MutableRefObject<Set<number>>
+  onJump?: () => void
 }
 
 export function ARExperience({
@@ -49,6 +52,8 @@ export function ARExperience({
   onScoreUpdate,
   playerSlots,
   recenterSignal = 0,
+  remoteJumpsRef,
+  onJump,
 }: ARExperienceProps) {
   const playerSlotsRef = useRef(playerSlots)
   playerSlotsRef.current = playerSlots
@@ -250,8 +255,11 @@ export function ARExperience({
         const isSinglePlayer = slots.length === 1
         if (isSinglePlayer && slots[0]) {
           engines[slots[0].targetIndex]?.jump()
+          onJump?.()
         } else {
-          for (const engine of engines) engine.jump()
+          const myTarget = slots[0]?.targetIndex ?? 0
+          engines[myTarget]?.jump()
+          onJump?.()
         }
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
@@ -345,6 +353,13 @@ export function ARExperience({
           if (!wasPlaying) {
             for (const engine of engines) engine.reset(seedRef.current)
             wasPlaying = true
+          }
+
+          if (remoteJumpsRef?.current) {
+            for (const ti of remoteJumpsRef.current) {
+              engines[ti]?.jump()
+            }
+            remoteJumpsRef.current.clear()
           }
 
           const slots = playerSlotsRef.current

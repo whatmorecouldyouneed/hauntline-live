@@ -4,6 +4,7 @@ export type ClientMsg =
   | { type: "ready" }
   | { type: "jump" }
   | { type: "death"; score: number }
+  | { type: "rematch" }
 
 /** messages sent from server to clients */
 export type ServerMsg =

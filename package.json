@@ -13,6 +13,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "bad-words": "^4.0.0",
     "eruda": "^3.4.3",
     "mind-ar": "^1.2.5",
     "partysocket": "^1.1.14",
