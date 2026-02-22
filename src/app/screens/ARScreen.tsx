@@ -338,7 +338,7 @@ export function ARScreen({
           {slots.map((s) => (
             <div
               key={s.targetIndex}
-              className={`marker-slot ${s.detected ? "detected" : ""}`}
+              className={`marker-slot ${s.detected ? "detected" : ""} ${s.name ? "joined" : ""}`}
               style={{
                 borderColor: `#${s.color.toString(16).padStart(6, "0")}`,
               }}
@@ -351,6 +351,8 @@ export function ARScreen({
                     : "dead"
                   : s.detected
                     ? "found"
+                    : s.name
+                    ? "joined"
                     : "..."}
               </span>
             </div>

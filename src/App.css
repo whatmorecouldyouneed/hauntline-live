@@ -783,8 +783,13 @@ body:has(.game-run) {
   transition: opacity 0.3s;
 }
 
-.marker-slot.detected {
+.marker-slot.detected,
+.marker-slot.joined {
   opacity: 1;
+}
+
+.marker-slot.joined .marker-status {
+  color: #b84dff;
 }
 
 .marker-label {

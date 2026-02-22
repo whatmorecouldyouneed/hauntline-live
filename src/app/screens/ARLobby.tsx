@@ -17,7 +17,11 @@ export function ARLobby({
   countdown,
   singlePlayerAR = false,
 }: ARLobbyProps) {
-  const detected = players.filter((p) => p.detected)
+  // multiplayer: show all players in room (from server); single-player: only detected marker
+  const visible =
+    singlePlayerAR
+      ? players.filter((p) => p.detected)
+      : players.filter((p) => p.detected || p.name)
 
   if (countdown !== null) {
     return (
@@ -32,7 +36,7 @@ export function ARLobby({
   return (
     <div className="ar-overlay ar-lobby">
       <div className="ar-player-cards">
-        {detected.map((p) => (
+        {visible.map((p) => (
           <div
             key={p.targetIndex}
             className={`ar-player-card ${p.ready ? "ready" : ""}`}
@@ -53,7 +57,7 @@ export function ARLobby({
         ))}
       </div>
 
-      {!localReady && detected.length > 0 && (
+      {!localReady && visible.length > 0 && (
         <div className="ar-lobby-actions">
           <button type="button" onClick={onReady} className="btn btn-primary ar-lobby-btn">
             Ready
