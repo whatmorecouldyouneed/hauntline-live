@@ -1,0 +1,13 @@
+diff --git a/node_modules/mind-ar/dist/mindar-image-three.prod.js b/node_modules/mind-ar/dist/mindar-image-three.prod.js
+index c19cd8e..1c052c8 100644
+--- a/node_modules/mind-ar/dist/mindar-image-three.prod.js
++++ b/node_modules/mind-ar/dist/mindar-image-three.prod.js
+@@ -13613,7 +13613,7 @@ class Zb {
+       }
+       const a = {
+         audio: !1,
+-        video: {}
++        video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+       };
+       this.shouldFaceUser ? this.userDeviceId ? a.video.deviceId = { exact: this.userDeviceId } : a.video.facingMode = "user" : this.environmentDeviceId ? a.video.deviceId = { exact: this.environmentDeviceId } : a.video.facingMode = "environment", navigator.mediaDevices.getUserMedia(a).then((r) => {
+         this.video.addEventListener("loadedmetadata", () => {

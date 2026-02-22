@@ -50,23 +50,23 @@ const GROUND_Y = 0
 const PLAYER_X = 0
 
 // obstacle movement
-const BASE_SPEED = 12
-const MAX_SPEED = 28
-const SPAWN_INTERVAL_START = 1.2
-const SPAWN_INTERVAL_MIN = 0.5
-const RAMP_DURATION = 45
+const BASE_SPEED = 8
+const MAX_SPEED = 18
+const SPAWN_INTERVAL_START = 2.5
+const SPAWN_INTERVAL_MIN = 1.2
+const RAMP_DURATION = 90
 
 // collision
 const DANGER_Z_MIN = -1.5
 const DANGER_Z_MAX = 1.5
-const JUMP_THRESHOLD = 1.2
+const JUMP_THRESHOLD = 1.0
 const PLAYER_HALF_WIDTH = 0.8
 
 // spawning
 const SPAWN_Z = -55
 const OBSTACLE_WIDTH = 1.5
-const OBSTACLE_HEIGHT_MIN = 0.6
-const OBSTACLE_HEIGHT_MAX = 1.4
+const OBSTACLE_HEIGHT_MIN = 0.5
+const OBSTACLE_HEIGHT_MAX = 1.2
 const OBSTACLE_DEPTH = 1.5
 
 // default fixed timestep: 60Hz

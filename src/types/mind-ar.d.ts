@@ -10,12 +10,15 @@ declare module "mind-ar/dist/mindar-image-three.prod.js" {
     uiError?: string
     filterMinCF?: number
     filterBeta?: number
+    missTolerance?: number
+    warmupTolerance?: number
   }
 
   interface Anchor {
     group: Group
     onTargetFound?: () => void
     onTargetLost?: () => void
+    onTargetUpdate?: () => void
   }
 
   export class MindARThree {

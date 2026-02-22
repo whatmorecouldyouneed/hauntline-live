@@ -4,7 +4,7 @@ import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
 import { createGhostGroup, GHOST_COLORS } from "./meshes"
 
 // TODO: replace with P1-P4 compiled .mind file (skipped tonight, do tomorrow)
-const TARGET_MIND_SRC = "/markers/targets.mind"
+const TARGET_MIND_SRC = "/markers/player-one.mind"
 
 // TODO: bump to 4 when P1-P4 .mind file is compiled
 const NUM_TARGETS = 1

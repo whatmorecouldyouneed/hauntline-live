@@ -1,130 +1,191 @@
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { DesktopGate } from "./app/screens/DesktopGate"
 import { Home } from "./app/screens/Home"
-import { PlayersSetup } from "./app/screens/PlayersSetup"
-import type { Player } from "./types/game"
-import { TurnIntro } from "./app/screens/TurnIntro"
+import { NameInput } from "./app/screens/NameInput"
+import { ModeSelect } from "./app/screens/ModeSelect"
+import { CharacterSelect } from "./app/screens/CharacterSelect"
+import { JoinRoom } from "./app/screens/JoinRoom"
 import { GameRun } from "./app/screens/GameRun"
 import { Death } from "./app/screens/Death"
 import { Results } from "./app/screens/Results"
 import { ARScreen } from "./app/screens/ARScreen"
+import type { Player } from "./types/game"
+import type { CharacterIndex } from "./game/meshes"
 import "./App.css"
 
-// TODO: online room state sync
+// TODO: online room state sync via PartyKit
 
 type Screen =
   | "home"
-  | "setup"
-  | "turnIntro"
+  | "name"
+  | "modeSelect"
+  | "characterSelect"
   | "game"
   | "death"
-  | "results"
+  | "joinRoom"
   | "ar"
+  | "results"
+
+const PLAYER_NAME_KEY = "hauntline-player-name"
+
+function getStoredPlayerName(): string {
+  try {
+    return localStorage.getItem(PLAYER_NAME_KEY) ?? ""
+  } catch {
+    return ""
+  }
+}
+
+function setStoredPlayerName(name: string): void {
+  try {
+    localStorage.setItem(PLAYER_NAME_KEY, name.trim())
+  } catch {
+    // ignore
+  }
+}
+
+function generateRoomCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+  let code = ""
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return code
+}
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home")
+  const [playerName, setPlayerName] = useState(getStoredPlayerName)
+  const [roomCode, setRoomCode] = useState<string | null>(null)
+  const [lastScore, setLastScore] = useState(0)
+  const [characterIndex, setCharacterIndex] = useState<CharacterIndex>(0)
+
+  // used for results screen in single player
   const [players, setPlayers] = useState<Player[]>([])
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
-  const [lastTime, setLastTime] = useState(0)
 
   const goHome = useCallback(() => {
     setScreen("home")
+    setRoomCode(null)
+    setLastScore(0)
     setPlayers([])
-    setCurrentPlayerIndex(0)
-    setLastTime(0)
   }, [])
 
-  const goSetup = useCallback(() => {
-    setScreen("setup")
-    setPlayers([])
-    setCurrentPlayerIndex(0)
+  const goToNameScreen = useCallback(() => {
+    setScreen("name")
   }, [])
 
-  const goAR = useCallback(() => {
+  const goName = useCallback(() => {
+    if (playerName.trim()) {
+      setScreen("modeSelect")
+    } else {
+      setScreen("name")
+    }
+  }, [playerName])
+
+  const handleNameSubmit = useCallback((name: string) => {
+    const trimmed = name.trim()
+    setPlayerName(trimmed)
+    setStoredPlayerName(trimmed)
+    setScreen("modeSelect")
+  }, [])
+
+  const goSinglePlayer = useCallback(() => {
+    setScreen("characterSelect")
+  }, [])
+
+  const goSinglePlayerAR = useCallback(() => {
+    setRoomCode(null)
     setScreen("ar")
   }, [])
 
-  const startGame = useCallback((newPlayers: Player[]) => {
-    setPlayers(newPlayers)
-    setCurrentPlayerIndex(0)
-    setScreen("turnIntro")
-  }, [])
-
-  const startRun = useCallback(() => {
+  const goToGameWithCharacter = useCallback((idx: CharacterIndex) => {
+    setCharacterIndex(idx)
+    setPlayers([{ name: playerName, bestMs: 0 }])
     setScreen("game")
+  }, [playerName])
+
+  const goBackFromCharacterSelect = useCallback(() => {
+    setScreen("modeSelect")
   }, [])
 
-  const handleNextPlayer = useCallback(() => {
-    const nextIndex = currentPlayerIndex + 1
-    if (nextIndex >= players.length) {
-      setScreen("results")
-    } else {
-      setCurrentPlayerIndex(nextIndex)
-      setScreen("turnIntro")
-    }
-  }, [currentPlayerIndex, players.length])
+  const goCreateRoom = useCallback(() => {
+    const code = generateRoomCode()
+    setRoomCode(code)
+    setScreen("ar")
+  }, [])
+
+  const goJoinRoom = useCallback(() => {
+    setScreen("joinRoom")
+  }, [])
+
+  const handleJoinRoom = useCallback((code: string) => {
+    setRoomCode(code)
+    setScreen("ar")
+  }, [])
 
   const handleRetry = useCallback(() => {
-    setScreen("turnIntro")
-  }, [])
+    setPlayers([{ name: playerName, bestMs: 0 }])
+    setScreen("game")
+  }, [playerName])
 
-  const handleSeeResults = useCallback(() => {
-    setScreen("results")
-  }, [])
+  const handleDeath = useCallback((elapsed: number) => {
+    setLastScore(elapsed)
+    setPlayers([{ name: playerName, bestMs: elapsed }])
+    setScreen("death")
+  }, [playerName])
 
   const handleRematch = useCallback(() => {
     setPlayers((prev) => prev.map((p) => ({ ...p, bestMs: 0 })))
-    setCurrentPlayerIndex(0)
-    setScreen("turnIntro")
+    setScreen("ar")
   }, [])
-
-  const currentPlayerIndexRef = useRef(currentPlayerIndex)
-  useEffect(() => {
-    currentPlayerIndexRef.current = currentPlayerIndex
-  }, [currentPlayerIndex])
-
-  const handleDeath = useCallback((elapsed: number) => {
-    const idx = currentPlayerIndexRef.current
-    setLastTime(elapsed)
-    setPlayers((prev) => {
-      const next = [...prev]
-      if (idx >= 0 && idx < next.length) {
-        next[idx] = { ...next[idx], bestMs: elapsed }
-      }
-      return next
-    })
-    setScreen("death")
-  }, [])
-
-  const currentPlayer = players[currentPlayerIndex]
-  const isLastPlayer = currentPlayerIndex >= players.length - 1
-  const nextPlayer = players[currentPlayerIndex + 1]
 
   return (
     <DesktopGate>
       <div className="app">
-        {screen === "home" && <Home onPlay={goSetup} onAR={goAR} />}
-        {screen === "setup" && (
-          <PlayersSetup onStart={startGame} onBack={goHome} />
+        {screen === "home" && (
+          <Home onPlay={goName} />
         )}
-        {screen === "turnIntro" && currentPlayer && (
-          <TurnIntro
-            playerName={currentPlayer.name}
-            onStart={startRun}
+        {screen === "name" && (
+          <NameInput
+            initialName={playerName}
+            onSubmit={handleNameSubmit}
+            onBack={goHome}
+          />
+        )}
+        {screen === "modeSelect" && (
+          <ModeSelect
+            playerName={playerName}
+            onSinglePlayer={goSinglePlayer}
+            onSinglePlayerAR={goSinglePlayerAR}
+            onCreateRoom={goCreateRoom}
+            onJoinRoom={goJoinRoom}
+            onBack={goToNameScreen}
+          />
+        )}
+        {screen === "characterSelect" && (
+          <CharacterSelect
+            onSelect={(idx) => goToGameWithCharacter(idx)}
+            onBack={goBackFromCharacterSelect}
+          />
+        )}
+        {screen === "joinRoom" && (
+          <JoinRoom
+            onJoin={handleJoinRoom}
+            onBack={() => setScreen("modeSelect")}
           />
         )}
         {screen === "game" && (
-          <GameRun onDeath={handleDeath} />
+          <GameRun
+            onDeath={handleDeath}
+            characterIndex={characterIndex}
+          />
         )}
-        {screen === "death" && currentPlayer && (
+        {screen === "death" && (
           <Death
-            playerName={currentPlayer.name}
-            timeSurvived={lastTime}
-            isLastPlayer={isLastPlayer}
-            nextPlayerName={nextPlayer?.name}
-            onNextPlayer={handleNextPlayer}
+            playerName={playerName}
+            timeSurvived={lastScore}
             onRetry={handleRetry}
-            onSeeResults={handleSeeResults}
+            onHome={goHome}
           />
         )}
         {screen === "results" && (
@@ -135,7 +196,12 @@ export default function App() {
           />
         )}
         {screen === "ar" && (
-          <ARScreen onBack={goHome} />
+          <ARScreen
+            playerName={playerName}
+            roomCode={roomCode}
+            singlePlayerAR={!roomCode}
+            onBack={goHome}
+          />
         )}
       </div>
     </DesktopGate>

@@ -67,32 +67,148 @@
   color: #666;
 }
 
-/* players setup */
+/* shared */
 .screen-title {
   font-size: 1.5rem;
   color: #e0e0e0;
   margin: 0 0 0.5rem;
 }
 
-.count-selector {
-  display: flex;
-  gap: 0.5rem;
+/* mode select */
+.mode-player-name {
+  font-size: 1.1rem;
+  color: #00ff88;
+  margin: 0;
 }
 
-.count-btn {
-  min-width: 48px;
-}
-
-.count-btn.active {
-  background-color: #00ff88;
-  color: #0a0a0a;
-}
-
-.name-inputs {
+.mode-buttons {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+}
+
+.mode-btn {
+  width: 100%;
+}
+
+/* character select — full-screen 3d viewer, modern game ui */
+.character-select {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  padding: 0;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 100dvh;
+  background: #0a0a0a;
+}
+
+.character-select-title {
+  position: absolute;
+  top: 1.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+  margin: 0;
+}
+
+.character-viewer-fullscreen {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.character-viewer-3d {
+  position: absolute;
+  top: 10vh;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  touch-action: manipulation;
+}
+
+.character-viewer-3d canvas {
+  display: block;
+}
+
+.character-arrow {
+  position: absolute;
+  top: calc(50% + 8vh);
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 200;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: opacity 0.2s;
+}
+
+.character-arrow:hover {
+  opacity: 1;
+}
+
+.character-arrow:active {
+  opacity: 0.7;
+}
+
+.character-arrow-left {
+  left: 0.75rem;
+}
+
+.character-arrow-right {
+  right: 0.75rem;
+}
+
+.character-select-footer {
+  padding: 1rem 1.5rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  background: #0a0a0a;
+}
+
+.character-select-footer .screen-actions {
+  justify-content: center;
+}
+
+.character-display-name {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: capitalize;
+  margin: 0;
+  text-align: center;
+}
+
+/* join room */
+.room-code-input {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
 }
 
 .name-input {
@@ -270,6 +386,12 @@
   overflow: hidden;
 }
 
+/* ensure game area receives taps (overlays use pointer-events: none) */
+.ar-viewer-touch-target {
+  z-index: 1;
+  touch-action: manipulation;
+}
+
 /* force MindAR's video to fill and be visible */
 .ar-viewer > video {
   position: absolute !important;
@@ -376,4 +498,217 @@
   padding: 0.5rem 1.5rem;
   border-radius: 8px;
   margin: 0;
+}
+
+.ar-player-label {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin: 0.25rem 0 0;
+}
+
+/* ar phase overlays */
+.ar-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.ar-overlay > * {
+  pointer-events: auto;
+}
+
+.ar-overlay.ar-lobby {
+  justify-content: flex-end;
+  padding-bottom: 2rem;
+}
+
+/* countdown */
+.ar-countdown {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.countdown-number {
+  font-size: 6rem;
+  font-weight: 700;
+  color: #00ff88;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+}
+
+/* single player: compact countdown, doesn't block taps */
+.ar-countdown-solo {
+  background: transparent;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 4rem;
+}
+
+.ar-countdown-solo,
+.ar-countdown-solo * {
+  pointer-events: none;
+}
+
+.ar-countdown-solo .countdown-number {
+  font-size: 3rem;
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.8);
+}
+
+/* lobby player cards */
+.ar-player-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 80%;
+  max-width: 300px;
+}
+
+.ar-player-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 2px solid;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.ar-player-card.ready {
+  opacity: 1;
+}
+
+.card-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.card-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  min-width: 2rem;
+}
+
+.card-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+}
+
+.card-status {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.ar-player-card.ready .card-status {
+  color: #00ff88;
+}
+
+.ar-lobby-btn {
+  margin-top: 0.5rem;
+  min-width: 200px;
+  width: 100%;
+}
+
+.ar-lobby-btn:first-child {
+  margin-top: 1rem;
+}
+
+.ar-waiting-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+/* ar playing score */
+.ar-playing-score {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  pointer-events: none;
+}
+
+/* ar results */
+.ar-results {
+  background: rgba(0, 0, 0, 0.8);
+  gap: 1rem;
+}
+
+.ar-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 80%;
+  max-width: 300px;
+}
+
+.ar-result-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.ar-result-row .rank {
+  font-weight: 600;
+  color: #00ff88;
+  min-width: 1.5rem;
+}
+
+.ar-result-row .name {
+  flex: 1;
+  color: #e0e0e0;
+}
+
+.ar-result-row .score {
+  color: #00ff88;
+  font-weight: 500;
+}
+
+/* room code display in AR */
+.ar-room-code {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+}
+
+.ar-lobby-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 1rem;
+  width: 80%;
+  max-width: 260px;
+}
+
+.room-code-label {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.room-code-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #00ff88;
+  letter-spacing: 0.15em;
 }

@@ -1,12 +1,55 @@
 import * as THREE from "three"
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
-// TODO: replace with GLB models via Meshy
+// P1=green, P2=red, P3=blue, P4=purple
+const GHOST_COLORS = [0x00ff88, 0xff6644, 0x44aaff, 0x9966ff] as const
 
-const GHOST_COLORS = [0x00ff88, 0xff6644, 0x44aaff, 0xffcc00] as const
+// P1=wisp, P2=spark, P3=classic, P4=wraith
+export const CHARACTER_MODELS = [
+  "/models/wisp.glb",
+  "/models/spark.glb",
+  "/models/classic.glb",
+  "/models/wraith.glb",
+] as const
+
+export type CharacterIndex = 0 | 1 | 2 | 3
 
 export { GHOST_COLORS }
 
-/** creates a glowing ghost sphere (or group for future GLB swap) */
+export interface LoadCharacterOptions {
+  /** target size for largest dimension (default 0.6 for AR) */
+  targetSize?: number
+  /** rotate model around Y in radians (e.g. Math.PI to face -Z) */
+  rotateY?: number
+}
+
+/** loads a character GLB, scaled. preserves baked-in textures. */
+export async function loadCharacterModel(
+  modelPath: string,
+  _color?: number,
+  options: LoadCharacterOptions = {}
+): Promise<THREE.Group> {
+  const { targetSize = 0.6, rotateY = 0 } = options
+  const loader = new GLTFLoader()
+  const gltf = await loader.loadAsync(modelPath)
+  const model = gltf.scene
+
+  let box = new THREE.Box3().setFromObject(model)
+  const size = new THREE.Vector3()
+  box.getSize(size)
+  const maxDim = Math.max(size.x, size.y, size.z, 0.001)
+  const scale = targetSize / maxDim
+  model.scale.setScalar(scale)
+  if (rotateY !== 0) model.rotation.y = rotateY
+  box = new THREE.Box3().setFromObject(model)
+  model.position.y = -box.min.y + 0.02 // base at y=0, slight lift to avoid z-fight
+
+  const group = new THREE.Group()
+  group.add(model)
+  return group
+}
+
+/** creates a glowing ghost sphere (fallback for non-AR screens) */
 export function createGhostGroup(
   color: number,
   radius = 0.3
