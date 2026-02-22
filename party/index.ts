@@ -93,6 +93,9 @@ export default class HauntlineServer implements Party.Server {
         // only go to results when everyone is dead (game continues for survivors)
         const players = Object.values(this.state.players)
         const anyAlive = players.some((p) => p.alive)
+        // #region agent log
+        fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'party/index.ts:death',message:'server death handler',data:{senderId:sender.id,playerCount:players.length,anyAlive,transitionToResults:players.length>0&&!anyAlive,scores:players.map(p=>({name:p.name,alive:p.alive,score:p.score}))},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         if (players.length > 0 && !anyAlive) {
           this.state.phase = "results"
           this.broadcastState()

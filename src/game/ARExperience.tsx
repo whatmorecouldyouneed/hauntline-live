@@ -397,6 +397,9 @@ export function ARExperience({
             ? [slots[0].targetIndex]
             : [...new Set(slots.filter((s) => s.name).map((s) => s.targetIndex))]
           const activeIndices = sessionIndices.length > 0 ? sessionIndices : [localTargetIndex]
+          // #region agent log
+          if (Math.random() < 0.0005) fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARExperience.tsx:playing',message:'active indices',data:{sessionIndices,activeIndices,localTargetIndex,slotsWithNames:slots.filter(s=>s.name).map(s=>({ti:s.targetIndex,name:s.name}))},hypothesisId:'E',timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
 
           for (const i of activeIndices) {
             const engine = engines[i]
@@ -426,6 +429,9 @@ export function ARExperience({
             onScoreUpdateRef.current(i, state.elapsed)
             if (!state.alive) {
               if (isSinglePlayer || i === localTargetIndex) {
+                // #region agent log
+                fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARExperience.tsx:death',message:'calling onPlayerDeath',data:{targetIndex:i,score:state.elapsed,isLocal:i===localTargetIndex},hypothesisId:'D',timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
                 playDeath()
                 shakeIntensity = 0.08
                 const worldPos = new THREE.Vector3()

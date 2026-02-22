@@ -41,22 +41,24 @@ const PLAY_START_DELAY_MS = INTRO_DURATION_MS + COUNTDOWN_MS
 
 function mergeServerStateIntoSlots(
   slots: ARPlayerSlot[],
-  roomState: { players: Record<string, { targetIndex: number; name: string; ready: boolean; alive: boolean; score: number }> } | null
+  roomState: { phase?: string; players: Record<string, { targetIndex: number; name: string; ready: boolean; alive: boolean; score: number }> } | null
 ): ARPlayerSlot[] {
   if (!roomState) return slots
+  const isResults = roomState.phase === "results"
   return slots.map((slot) => {
     const player = Object.values(roomState.players).find(
       (p) => p.targetIndex === slot.targetIndex
     )
-    return player
-      ? {
-          ...slot,
-          name: player.name,
-          ready: player.ready,
-          alive: player.alive,
-          score: player.score,
-        }
-      : slot
+    if (!player) return slot
+    // in results phase, take max of local vs server score to handle races (e.g. state arrives before final death processed)
+    const score = isResults && slot.score > player.score ? slot.score : player.score
+    return {
+      ...slot,
+      name: player.name,
+      ready: player.ready,
+      alive: player.alive,
+      score,
+    }
   })
 }
 
@@ -95,7 +97,13 @@ export function ARScreen({
   // merge server state into slots when in multiplayer
   useEffect(() => {
     if (singlePlayerAR || !roomState) return
-    setSlots((prev) => mergeServerStateIntoSlots(prev, roomState))
+    setSlots((prev) => {
+      const next = mergeServerStateIntoSlots(prev, roomState)
+      // #region agent log
+      if (roomState.phase === "results") fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARScreen.tsx:merge',message:'merge on results',data:{phase:roomState.phase,mergedScores:next.map(s=>({ti:s.targetIndex,name:s.name,score:s.score})),serverScores:Object.values(roomState.players).map(p=>({ti:p.targetIndex,name:p.name,score:p.score}))},hypothesisId:'C',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      return next
+    })
   }, [singlePlayerAR, roomState])
 
   // sync phase from server (lobby, results) in multiplayer
@@ -115,6 +123,9 @@ export function ARScreen({
       setPhase("lobby")
     }
     if (roomState.phase === "results" && phase === "playing") {
+      // #region agent log
+      fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARScreen.tsx:phaseSync',message:'setting phase to results from server',data:{roomStatePhase:roomState.phase},hypothesisId:'B',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setPhase("results")
     }
   }, [singlePlayerAR, roomState, roomState?.phase, phase])
@@ -148,6 +159,9 @@ export function ARScreen({
     }
     if (lastEvent.type === "playerDeath" && roomState?.players[lastEvent.playerId]) {
       const ti = roomState.players[lastEvent.playerId].targetIndex
+      // #region agent log
+      fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARScreen.tsx:lastEvent-playerDeath',message:'applying remote death to slot',data:{playerId:lastEvent.playerId,targetIndex:ti,score:lastEvent.score},hypothesisId:'D',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setSlots((prev) =>
         prev.map((s) =>
           s.targetIndex === ti ? { ...s, alive: false, score: lastEvent.score } : s
@@ -265,6 +279,9 @@ export function ARScreen({
 
   const handlePlayerDeath = useCallback(
     (targetIndex: number, scoreSeconds: number) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARScreen.tsx:handlePlayerDeath',message:'player death',data:{targetIndex,scoreSeconds,singlePlayerAR,sending:!singlePlayerAR&&!!roomCode},hypothesisId:'D',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (!singlePlayerAR && roomCode) {
         send({ type: "death", score: scoreSeconds })
       }
@@ -285,6 +302,9 @@ export function ARScreen({
   )
 
   const handleScoreUpdate = useCallback((targetIndex: number, score: number) => {
+    // #region agent log
+    if (Math.random() < 0.002) fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARScreen.tsx:handleScoreUpdate',message:'score update',data:{targetIndex,score},hypothesisId:'E',timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     setSlots((prev) =>
       prev.map((s) =>
         s.targetIndex === targetIndex ? { ...s, score } : s
