@@ -301,6 +301,75 @@
   text-transform: uppercase;
 }
 
+/* ar how to play */
+.ar-how-to-play {
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.ar-how-to-play-instructions {
+  font-size: 1.05rem;
+  color: #fff;
+  margin: 0;
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  max-width: 320px;
+}
+
+.ar-marker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.ar-marker-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  border: 1px solid #333;
+  text-decoration: none;
+  color: #e0e0e0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ar-marker-card:hover {
+  border-color: #00ff88;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+}
+
+.ar-marker-image {
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.ar-marker-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #00ff88;
+}
+
+.ar-camera-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.ar-how-to-play-actions {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
 .name-input {
   padding: 0.75rem 1rem;
   font-size: 1rem;

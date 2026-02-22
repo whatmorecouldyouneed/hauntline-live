@@ -9,6 +9,7 @@ import { JoinRoom } from "./app/screens/JoinRoom"
 import { GameRun } from "./app/screens/GameRun"
 import { Death } from "./app/screens/Death"
 import { Results } from "./app/screens/Results"
+import { ARHowToPlay } from "./app/screens/ARHowToPlay"
 import { ARScreen } from "./app/screens/ARScreen"
 import type { Player } from "./types/game"
 import type { CharacterIndex } from "./game/meshes"
@@ -24,6 +25,7 @@ type Screen =
   | "game"
   | "death"
   | "joinRoom"
+  | "arHowToPlay"
   | "ar"
   | "results"
 
@@ -103,6 +105,10 @@ export default function App() {
 
   const goSinglePlayerAR = useCallback(() => {
     setRoomCode(null)
+    setScreen("arHowToPlay")
+  }, [])
+
+  const goToARScreen = useCallback(() => {
     setScreen("ar")
   }, [])
 
@@ -185,6 +191,9 @@ export default function App() {
             onJoin={handleJoinRoom}
             onBack={() => setScreen("modeSelect")}
           />
+        )}
+        {screen === "arHowToPlay" && (
+          <ARHowToPlay onPlay={goToARScreen} onBack={() => setScreen("modeSelect")} />
         )}
         {screen === "game" && (
           <GameRun

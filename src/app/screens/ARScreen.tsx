@@ -51,16 +51,30 @@ export function ARScreen({
   const [recenterSignal, setRecenterSignal] = useState(0)
   const hasIntroEndedRef = useRef(false)
   const hasPlayingStartedRef = useRef(false)
-
   const handleMarkersUpdate = useCallback(
     (markers: MarkerState[]) => {
       const anyDetected = markers.some((m) => m.detected)
-      setSlots((prev) =>
-        prev.map((slot) => {
+      setSlots((prev) => {
+        if (singlePlayerAR && prev.length === 1) {
+          const firstDetected = markers.find((m) => m.detected)
+          const slot = prev[0]
+          if (firstDetected) {
+            // single player: always use whichever marker is currently in view
+            return [{
+              ...slot,
+              targetIndex: firstDetected.targetIndex,
+              label: PLAYER_LABELS[firstDetected.targetIndex],
+              color: GHOST_COLORS[firstDetected.targetIndex],
+              detected: true,
+            }]
+          }
+          return [{ ...slot, detected: false }]
+        }
+        return prev.map((slot) => {
           const marker = markers.find((m) => m.targetIndex === slot.targetIndex)
           return marker ? { ...slot, detected: marker.detected } : slot
         })
-      )
+      })
       if (anyDetected) {
         setPhase((p) => {
           if (p !== "scanning") return p

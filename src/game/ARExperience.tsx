@@ -19,8 +19,9 @@ import type { MarkerState } from "./ARViewer"
 // ar spin axis chosen empirically — flip to 'z' if rotation looks wrong on device
 const AR_SPIN_AXIS: "y" | "z" = "y"
 
-const TARGET_MIND_SRC = "/markers/player-one.mind"
-const NUM_TARGETS = 1
+// combined .mind with all 4 markers (P1=0, P2=1, P3=2, P4=3)
+const TARGET_MIND_SRC = "/markers/targets.mind"
+const NUM_TARGETS = 4
 const OBSTACLES_PER_PLAYER = 20
 
 // engine → AR scale (marker ≈ 1 unit wide)
@@ -46,10 +47,11 @@ export function ARExperience({
   seed,
   onPlayerDeath,
   onScoreUpdate,
-  playerSlots: _playerSlots,
+  playerSlots,
   recenterSignal = 0,
 }: ARExperienceProps) {
-  void _playerSlots
+  const playerSlotsRef = useRef(playerSlots)
+  playerSlotsRef.current = playerSlots
   const containerRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const phaseRef = useRef(phase)
@@ -223,6 +225,7 @@ export function ARExperience({
           lerpToAnchor()
         }
         anchor.onTargetLost = () => {
+          frozenGroup.visible = false
           updateMarker(i, false)
         }
       }
@@ -243,7 +246,13 @@ export function ARExperience({
 
       const handleTap = () => {
         if (phaseRef.current !== "playing") return
-        for (const engine of engines) engine.jump()
+        const slots = playerSlotsRef.current
+        const isSinglePlayer = slots.length === 1
+        if (isSinglePlayer && slots[0]) {
+          engines[slots[0].targetIndex]?.jump()
+        } else {
+          for (const engine of engines) engine.jump()
+        }
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
       container.addEventListener("pointerdown", handleTap)
@@ -260,10 +269,23 @@ export function ARExperience({
         lastTime = now
         const currentPhase = phaseRef.current
 
+        // single player: only show the active marker's ghost (hide others even if in view)
+        const slots = playerSlotsRef.current
+        if (slots.length === 1 && slots[0]) {
+          const activeIdx = slots[0].targetIndex
+          for (let i = 0; i < frozenGroups.length; i++) {
+            const m = markersRef.current[i]
+            const detected = m?.detected ?? false
+            frozenGroups[i].visible = detected && i === activeIdx
+          }
+        }
+
         // capture ready pose when countdown starts — use as source of truth (keep tracking on)
         if (!poseLocked && (currentPhase === "countdown" || currentPhase === "playing")) {
           poseLocked = true
-          const fg = frozenGroups[0]
+          const slots = playerSlotsRef.current
+          const activeIdx = slots.length === 1 && slots[0] ? slots[0].targetIndex : 0
+          const fg = frozenGroups[activeIdx]
           readyPoseRef = {
             pos: new THREE.Vector3(),
             quat: new THREE.Quaternion(),
@@ -282,7 +304,9 @@ export function ARExperience({
         if (currentPhase === "introAnim" && introStartMsRef.current != null) {
           // capture ghost rotation on first intro frame (from lobby spin)
           if (readyRotationRef === null) {
-            const model = ghostGroups[0].children[0]
+            const slots = playerSlotsRef.current
+            const activeIdx = slots.length === 1 && slots[0] ? slots[0].targetIndex : 0
+            const model = ghostGroups[activeIdx].children[0]
             readyRotationRef = model?.rotation?.y ?? 0
           }
 
@@ -323,10 +347,15 @@ export function ARExperience({
             wasPlaying = true
           }
 
-          for (let i = 0; i < NUM_TARGETS; i++) {
+          const slots = playerSlotsRef.current
+          const isSinglePlayer = slots.length === 1
+          const activeIndices = isSinglePlayer && slots[0]
+            ? [slots[0].targetIndex]
+            : Array.from({ length: NUM_TARGETS }, (_, i) => i)
+
+          for (const i of activeIndices) {
             const engine = engines[i]
-            if (!engine.alive) {
-              // hide obstacles, keep ghost visible (dead state)
+            if (!engine?.alive) {
               for (const mesh of obstaclePoolsPerTarget[i]) mesh.visible = false
               continue
             }
