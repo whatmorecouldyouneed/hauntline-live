@@ -28,14 +28,19 @@
   max-width: none;
   padding: 2rem;
   background-color: #000;
+  background-image: url("/cyber-background-desktop.png");
+  background-size: cover;
+  background-position: center;
   z-index: 9999;
 }
 
 .gate-message {
   font-size: 1.25rem;
+  font-weight: 600;
   color: #00ff88;
   text-align: center;
   margin: 0;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
 }
 
 .gate-qr {
@@ -45,12 +50,44 @@
 }
 
 /* home */
-.home .title {
-  font-size: 2rem;
-  font-weight: 600;
+.home-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 12vh 0 1.5rem;
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.home-title-line {
+  display: block;
+}
+
+.home-title-haunt {
   color: #00ff88;
-  margin: 0 0 1rem;
-  letter-spacing: 0.05em;
+  text-shadow:
+    0 0 6px #00ff88,
+    0 0 12px rgba(0, 255, 136, 0.7);
+}
+
+.home-title-line-word {
+  color: #b84dff;
+  text-shadow:
+    0 0 6px #b84dff,
+    0 0 12px rgba(184, 77, 255, 0.7);
+}
+
+/* home play button — larger variant of btn-primary */
+.home .home-play-btn {
+  width: 100%;
+  max-width: 220px;
+  min-height: 56px;
+  padding: 0.9em 2em;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
 }
 
 .how-to-play {
@@ -64,21 +101,31 @@
 .how-to-play p {
   margin: 0;
   font-size: 0.85rem;
-  color: #666;
+  font-weight: 400;
+  color: #9966cc;
 }
 
 /* shared */
 .screen-title {
   font-size: 1.5rem;
-  color: #e0e0e0;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #e8e8e8;
   margin: 0 0 0.5rem;
+  text-shadow: 0 0 4px rgba(0, 255, 136, 0.3);
 }
 
 /* mode select */
 .mode-player-name {
-  font-size: 1.1rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   color: #00ff88;
-  margin: 0;
+  margin: 0 0 0.5rem;
+  text-shadow:
+    0 0 8px #00ff88,
+    0 0 16px rgba(0, 255, 136, 0.7),
+    0 2px 4px rgba(184, 77, 255, 0.3);
 }
 
 .mode-buttons {
@@ -90,6 +137,13 @@
 
 .mode-btn {
   width: 100%;
+  min-height: 52px;
+}
+
+.mode-select .btn-secondary {
+  margin-top: auto;
+  padding: 0.6em 1.4em;
+  font-size: 0.95rem;
 }
 
 /* character select — full-screen 3d viewer, modern game ui */
@@ -102,12 +156,42 @@
   align-items: center;
   width: 100%;
   height: 100dvh;
-  background: #0a0a0a;
+  background-color: #0a0a0a;
+}
+
+.character-select-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.character-select-loading-text {
+  position: absolute;
+  top: calc(50% + 8vh);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #00ff88;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: character-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes character-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .character-select-title {
   position: absolute;
-  top: 1.5rem;
+  top: 9rem;
   left: 0;
   right: 0;
   text-align: center;
@@ -116,21 +200,17 @@
 }
 
 .character-viewer-fullscreen {
-  position: relative;
-  flex: 1;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-height: 0;
+  height: 100%;
 }
 
 .character-viewer-3d {
   position: absolute;
-  top: 10vh;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  height: auto;
-  min-height: 0;
+  height: 100%;
   touch-action: manipulation;
 }
 
@@ -175,20 +255,29 @@
   right: 0.75rem;
 }
 
+.character-display-name-floating {
+  position: absolute;
+  bottom: 22%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+}
+
 .character-select-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 1rem 1.5rem;
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
   width: 100%;
   text-align: center;
-  position: relative;
   z-index: 2;
-  background: #0a0a0a;
 }
 
 .character-select-footer .screen-actions {
@@ -197,10 +286,11 @@
 
 .character-display-name {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   text-transform: capitalize;
   margin: 0;
   text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* join room */
@@ -214,11 +304,12 @@
 .name-input {
   padding: 0.75rem 1rem;
   font-size: 1rem;
-  border: 1px solid #333;
-  border-radius: 8px;
+  border: 2px solid #333;
+  border-radius: 12px;
   background: #111;
   color: #e0e0e0;
   font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .name-input::placeholder {
@@ -228,6 +319,7 @@
 .name-input:focus {
   outline: none;
   border-color: #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
 .screen-actions {
@@ -237,26 +329,72 @@
 }
 
 .btn-primary {
-  background-color: #00ff88;
-  color: #0a0a0a;
-  border-color: #00ff88;
+  border-radius: 999px;
+  border: 3px solid #00ff88;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(0, 255, 136, 0.15) 25%,
+    rgba(0, 255, 136, 0.06) 50%,
+    rgba(0, 15, 10, 0.95) 100%
+  );
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 16px rgba(0, 255, 136, 0.5),
+    0 0 32px rgba(0, 255, 136, 0.25),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  transition: box-shadow 0.2s;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #00cc6a;
-  color: #0a0a0a;
-  border-color: #00cc6a;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(0, 255, 136, 0.2) 25%,
+    rgba(0, 255, 136, 0.08) 50%,
+    rgba(0, 25, 17, 0.95) 100%
+  );
+  color: #fff;
+  border-color: #00ff88;
+  box-shadow:
+    0 0 20px rgba(0, 255, 136, 0.6),
+    0 0 40px rgba(0, 255, 136, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.25);
 }
 
 .btn-secondary {
-  border-color: #555;
-  color: #aaa;
+  border-radius: 999px;
+  border: 2px solid #b84dff;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(184, 77, 255, 0.08) 25%,
+    rgba(100, 30, 150, 0.04) 100%
+  );
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 12px rgba(184, 77, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #333;
-  color: #e0e0e0;
-  border-color: #666;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(184, 77, 255, 0.12) 25%,
+    rgba(100, 30, 150, 0.06) 100%
+  );
+  color: #fff;
+  border-color: #c266ff;
+  box-shadow:
+    0 0 16px rgba(184, 77, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* turn intro */
@@ -269,17 +407,29 @@
 
 .turn-intro .turn-hint {
   font-size: 0.95rem;
-  color: #888;
+  color: #9966cc;
   margin: 0;
 }
 
-/* game run */
+/* when game is active, hide body background so only scene skybox shows (no double overlay) */
+body:has(.game-run) {
+  background-image: none;
+  background-color: #000;
+}
+
+.app:has(.game-run) {
+  padding: 0;
+}
+
+/* game run: full viewport, solid bg fallback, scene uses skybox texture */
 .game-run {
-  position: relative;
-  width: 100%;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
   height: 100dvh;
   max-width: none;
   padding: 0;
+  background: #0a0a0a;
 }
 
 .game-canvas {
@@ -291,13 +441,49 @@
   user-select: none;
 }
 
-.game-hud {
+.game-hud-row {
   position: absolute;
   top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 1rem;
+  right: 1rem;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   pointer-events: none;
+  height: 1.5rem;
+}
+
+.game-hud-row > * {
+  pointer-events: auto;
+}
+
+.game-hud-spacer {
+  width: 44px;
+  flex-shrink: 0;
+  visibility: hidden;
+}
+
+.game-hud {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.game-hud .game-hud-score,
+.game-hud .hud-score {
+  pointer-events: none;
+}
+
+.game-hud-score {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--game-accent, #00ff88);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--game-accent, #00ff88) 50%, transparent);
+  line-height: 1;
 }
 
 .hud-score {
@@ -305,13 +491,59 @@
   font-weight: 600;
   color: #00ff88;
   text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+  line-height: 1;
+}
+
+.game-pause-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--game-accent, #00ff88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.game-pause-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.game-pause-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.game-pause-btn:active {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.game-paused-overlay {
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.game-paused-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--game-accent, #00ff88);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--game-accent, #00ff88) 60%, transparent);
+  margin: 0;
+  text-transform: lowercase;
 }
 
 /* death */
 .death-message {
   font-size: 1.5rem;
+  font-weight: 700;
   color: #ff4444;
   margin: 0;
+  text-shadow: 0 0 6px rgba(255, 68, 68, 0.4);
 }
 
 .death-player {
@@ -325,6 +557,7 @@
   color: #00ff88;
   font-weight: 600;
   margin: 0;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
 }
 
 .death-handoff {
@@ -539,7 +772,26 @@
   text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
 }
 
-/* single player: compact countdown, doesn't block taps */
+/* single player: countdown overlay, above canvas */
+.game-countdown-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.game-countdown-number {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--game-accent, #00ff88);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--game-accent, #00ff88) 60%, transparent);
+}
+
+/* ar single player countdown (legacy) */
 .ar-countdown-solo {
   background: transparent;
   justify-content: flex-end;

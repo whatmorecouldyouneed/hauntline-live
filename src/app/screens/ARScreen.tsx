@@ -4,10 +4,12 @@ import { ARLobby } from "./ARLobby"
 import type { MarkerState } from "../../game/ARViewer"
 import { GHOST_COLORS } from "../../game/meshes"
 import { toScore } from "../../utils/score"
+import { INTRO_DURATION_MS } from "../../game/introAnim"
 import type { ARPlayerSlot, ARPhase } from "../../types/ar"
 
 const PLAYER_LABELS = ["P1", "P2", "P3", "P4"]
 const NUM_SLOTS = 4
+const COUNTDOWN_MS = 3000
 
 function createSlots(playerName: string, singlePlayerAR: boolean): ARPlayerSlot[] {
   const n = singlePlayerAR ? 1 : NUM_SLOTS
@@ -42,10 +44,13 @@ export function ARScreen({
   )
   const [localReady, setLocalReady] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [introStartMs, setIntroStartMs] = useState<number | null>(null)
+  const [nowMs, setNowMs] = useState(0)
   const [gameSeed] = useState(() => Date.now())
   const [rematchKey, setRematchKey] = useState(0)
   const [recenterSignal, setRecenterSignal] = useState(0)
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const hasIntroEndedRef = useRef(false)
+  const hasPlayingStartedRef = useRef(false)
 
   const handleMarkersUpdate = useCallback(
     (markers: MarkerState[]) => {
@@ -72,42 +77,65 @@ export function ARScreen({
 
   const handleReady = useCallback(() => {
     setLocalReady(true)
-    // TODO: with networking, broadcast ready message instead
     setSlots((prev) => {
       const next = prev.map((s, i) => (i === 0 ? { ...s, ready: true } : s))
       const detected = next.filter((s) => s.detected)
-      if (detected.length > 0 && detected.every((s) => s.ready)) {
-        setPhase("countdown")
-        setCountdown(3)
+      const readyToStart = detected.length > 0 && detected.every((s) => s.ready)
+      if (readyToStart) {
+        const now = performance.now()
+        hasIntroEndedRef.current = false
+        hasPlayingStartedRef.current = false
+        setPhase("introAnim")
+        setIntroStartMs(now)
       }
       return next
     })
   }, [])
 
-  // countdown timer
+  // single RAF tick for timestamp-driven intro/countdown
   useEffect(() => {
-    if (phase !== "countdown") return
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(countdownRef.current!)
-          setPhase("playing")
-          return null
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current)
+    if (phase !== "introAnim" && phase !== "countdown") return
+    let raf: number
+    const tick = () => {
+      setNowMs(performance.now())
+      raf = requestAnimationFrame(tick)
     }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
   }, [phase])
+
+  // derive phase transitions and countdown display from timestamps
+  useEffect(() => {
+    if ((phase !== "introAnim" && phase !== "countdown") || introStartMs === null) return
+    const countdownStartMs = introStartMs + INTRO_DURATION_MS
+    const playStartMs = countdownStartMs + COUNTDOWN_MS
+
+    if (phase === "introAnim" && nowMs >= countdownStartMs) {
+      if (!hasIntroEndedRef.current) {
+        hasIntroEndedRef.current = true
+        setPhase("countdown")
+      }
+    }
+
+    if (phase === "countdown") {
+      const remaining = Math.ceil((playStartMs - nowMs) / 1000)
+      setCountdown(Math.max(1, remaining))
+
+      if (nowMs >= playStartMs) {
+        if (!hasPlayingStartedRef.current) {
+          hasPlayingStartedRef.current = true
+          setPhase("playing")
+          setCountdown(null)
+        }
+      }
+    }
+  }, [phase, nowMs, introStartMs])
 
   const handlePlayerDeath = useCallback((targetIndex: number, score: number) => {
     setSlots((prev) => {
       const next = prev.map((s) =>
         s.targetIndex === targetIndex ? { ...s, alive: false, score } : s
       )
-      // if all detected players are dead, go to results
       const detected = next.filter((s) => s.detected)
       if (detected.length > 0 && detected.every((s) => !s.alive)) {
         setPhase("results")
@@ -131,22 +159,26 @@ export function ARScreen({
     setLocalReady(false)
     setRematchKey((k) => k + 1)
     setCountdown(null)
+    setIntroStartMs(null)
     setPhase("lobby")
+    hasIntroEndedRef.current = false
+    hasPlayingStartedRef.current = false
   }, [singlePlayerAR])
 
   const detectedCount = slots.filter((s) => s.detected).length
 
   return (
     <div className="screen ar-screen">
-      {/* single MindAR session from scan through game + results (no re-scan) */}
       {(phase === "scanning" ||
         phase === "lobby" ||
+        phase === "introAnim" ||
         phase === "countdown" ||
         phase === "playing" ||
         phase === "results") && (
         <ARExperience
           key={rematchKey}
           phase={phase}
+          introStartMs={introStartMs}
           onMarkersUpdate={handleMarkersUpdate}
           seed={gameSeed}
           onPlayerDeath={handlePlayerDeath}
@@ -156,8 +188,6 @@ export function ARScreen({
         />
       )}
 
-      {/* results overlay on top of frozen game */}
-
       {roomCode && (
         <div className="ar-room-code">
           <span className="room-code-label">room</span>
@@ -165,7 +195,6 @@ export function ARScreen({
         </div>
       )}
 
-      {/* marker HUD - hide for single player AR (less clutter) */}
       {phase !== "results" && !singlePlayerAR && (
         <div className="ar-marker-hud">
           {slots.map((s) => (
@@ -191,7 +220,6 @@ export function ARScreen({
         </div>
       )}
 
-      {/* phase overlays */}
       {phase === "scanning" && detectedCount === 0 && (
         <div className="ar-scanning-overlay">
           <p>{singlePlayerAR ? "point at a marker to start" : "scanning for markers..."}</p>

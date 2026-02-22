@@ -4,14 +4,14 @@ interface DeathProps {
   playerName: string
   timeSurvived: number
   onRetry: () => void
-  onHome: () => void
+  onModeSelect: () => void
 }
 
 export function Death({
   playerName,
   timeSurvived,
   onRetry,
-  onHome,
+  onModeSelect,
 }: DeathProps) {
   return (
     <div className="screen death">
@@ -19,8 +19,8 @@ export function Death({
       <p className="death-player">{playerName}</p>
       <p className="death-score">score: {toScore(timeSurvived)}</p>
       <div className="screen-actions">
-        <button type="button" onClick={onHome} className="btn btn-secondary">
-          Home
+        <button type="button" onClick={onModeSelect} className="btn btn-secondary">
+          Game Mode
         </button>
         <button type="button" onClick={onRetry} className="btn btn-primary">
           Retry

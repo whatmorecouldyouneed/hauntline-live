@@ -10,4 +10,4 @@ export interface ARPlayerSlot {
   name: string
 }
 
-export type ARPhase = "scanning" | "lobby" | "countdown" | "playing" | "results"
+export type ARPhase = "scanning" | "lobby" | "introAnim" | "countdown" | "playing" | "results"

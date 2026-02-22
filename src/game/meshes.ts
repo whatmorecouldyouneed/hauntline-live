@@ -23,13 +23,19 @@ export interface LoadCharacterOptions {
   rotateY?: number
 }
 
-/** loads a character GLB, scaled. preserves baked-in textures. */
+const modelCache = new Map<string, THREE.Group>()
+
+/** loads a character GLB, scaled. preserves baked-in textures. cached per path+options. */
 export async function loadCharacterModel(
   modelPath: string,
   _color?: number,
   options: LoadCharacterOptions = {}
 ): Promise<THREE.Group> {
   const { targetSize = 0.6, rotateY = 0 } = options
+  const cacheKey = `${modelPath}-${targetSize}-${rotateY}`
+  const cached = modelCache.get(cacheKey)
+  if (cached) return cached.clone(true)
+
   const loader = new GLTFLoader()
   const gltf = await loader.loadAsync(modelPath)
   const model = gltf.scene
@@ -46,6 +52,7 @@ export async function loadCharacterModel(
 
   const group = new THREE.Group()
   group.add(model)
+  modelCache.set(cacheKey, group)
   return group
 }
 

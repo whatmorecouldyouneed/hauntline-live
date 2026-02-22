@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { DesktopGate } from "./app/screens/DesktopGate"
+import { preloadCharacterSelectAssets } from "./game/characterSelectAssets"
 import { Home } from "./app/screens/Home"
 import { NameInput } from "./app/screens/NameInput"
 import { ModeSelect } from "./app/screens/ModeSelect"
@@ -65,6 +66,13 @@ export default function App() {
 
   const goHome = useCallback(() => {
     setScreen("home")
+    setRoomCode(null)
+    setLastScore(0)
+    setPlayers([])
+  }, [])
+
+  const goToModeSelect = useCallback(() => {
+    setScreen("modeSelect")
     setRoomCode(null)
     setLastScore(0)
     setPlayers([])
@@ -139,6 +147,10 @@ export default function App() {
     setScreen("ar")
   }, [])
 
+  useEffect(() => {
+    if (screen === "modeSelect") preloadCharacterSelectAssets()
+  }, [screen])
+
   return (
     <DesktopGate>
       <div className="app">
@@ -185,7 +197,7 @@ export default function App() {
             playerName={playerName}
             timeSurvived={lastScore}
             onRetry={handleRetry}
-            onHome={goHome}
+            onModeSelect={goToModeSelect}
           />
         )}
         {screen === "results" && (

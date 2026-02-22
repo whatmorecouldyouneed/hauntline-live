@@ -18,7 +18,10 @@ interface CharacterSelectProps {
 
 export function CharacterSelect({ onSelect, onBack }: CharacterSelectProps) {
   const [selected, setSelected] = useState<CharacterIndex>(0)
+  const [isLoading, setIsLoading] = useState(true)
   const touchStartX = useRef<number | null>(null)
+
+  const handleReady = useCallback(() => setIsLoading(false), [])
 
   const goPrev = useCallback(
     () => setSelected((s) => ((s - 1 + 4) % 4) as CharacterIndex),
@@ -54,7 +57,12 @@ export function CharacterSelect({ onSelect, onBack }: CharacterSelectProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <CharacterViewer3D characterIndex={selected} />
+        <CharacterViewer3D characterIndex={selected} onReady={handleReady} />
+        {isLoading && (
+          <div className="character-select-loading">
+            <span className="character-select-loading-text">Loading</span>
+          </div>
+        )}
         <button
           type="button"
           className="character-arrow character-arrow-left"
@@ -72,8 +80,8 @@ export function CharacterSelect({ onSelect, onBack }: CharacterSelectProps) {
           ›
         </button>
       </div>
+      <p className="character-display-name character-display-name-floating">{CHARACTER_NAMES[selected]}</p>
       <div className="character-select-footer">
-        <p className="character-display-name">{CHARACTER_NAMES[selected]}</p>
         <div className="screen-actions">
           <button type="button" onClick={onBack} className="btn btn-secondary">
             Back

@@ -13,7 +13,11 @@ import * as THREE from "three"
 import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { loadCharacterModel, CHARACTER_MODELS, GHOST_COLORS } from "./meshes"
+import { clamp01, getIntroAnimState, jumpArc, INTRO_DURATION_MS } from "./introAnim"
 import type { MarkerState } from "./ARViewer"
+
+// ar spin axis chosen empirically — flip to 'z' if rotation looks wrong on device
+const AR_SPIN_AXIS: "y" | "z" = "y"
 
 const TARGET_MIND_SRC = "/markers/player-one.mind"
 const NUM_TARGETS = 1
@@ -25,7 +29,8 @@ const S = 0.5
 const MAX_VIS = 5.5
 
 interface ARExperienceProps {
-  phase: "scanning" | "lobby" | "countdown" | "playing" | "results"
+  phase: "scanning" | "lobby" | "introAnim" | "countdown" | "playing" | "results"
+  introStartMs?: number | null
   onMarkersUpdate?: (markers: MarkerState[]) => void
   seed: number
   onPlayerDeath: (targetIndex: number, score: number) => void
@@ -36,6 +41,7 @@ interface ARExperienceProps {
 
 export function ARExperience({
   phase,
+  introStartMs = null,
   onMarkersUpdate,
   seed,
   onPlayerDeath,
@@ -47,11 +53,13 @@ export function ARExperience({
   const containerRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const phaseRef = useRef(phase)
+  const introStartMsRef = useRef<number | null>(introStartMs)
   const seedRef = useRef(seed)
   const recenterRef = useRef(recenterSignal)
+  phaseRef.current = phase
+  introStartMsRef.current = introStartMs
   const onPlayerDeathRef = useRef(onPlayerDeath)
   const onScoreUpdateRef = useRef(onScoreUpdate)
-  phaseRef.current = phase
   seedRef.current = seed
   recenterRef.current = recenterSignal
   onPlayerDeathRef.current = onPlayerDeath
@@ -85,8 +93,8 @@ export function ARExperience({
     const ghostGroups: THREE.Group[] = []
     const frozenGroups: THREE.Group[] = []
     const obstaclePoolsPerTarget: THREE.Mesh[][] = []
+    const obstacleMaterials: THREE.MeshStandardMaterial[] = []
     const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
-    const obstacleMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 })
 
     const init = async () => {
       const mindarThree = new MindARThree({
@@ -146,17 +154,23 @@ export function ARExperience({
         gameContainer.add(ghostGroup)
         ghostGroups.push(ghostGroup)
 
+        const obstacleMat = new THREE.MeshStandardMaterial({ color: GHOST_COLORS[i] })
+        obstacleMaterials.push(obstacleMat)
         const obstacles: THREE.Mesh[] = []
         for (let j = 0; j < OBSTACLES_PER_PLAYER; j++) {
-          const mesh = new THREE.Mesh(boxGeometry, obstacleMaterial)
+          const mesh = new THREE.Mesh(boxGeometry, obstacleMat)
           mesh.visible = false
           gameContainer.add(mesh)
           obstacles.push(mesh)
         }
         obstaclePoolsPerTarget.push(obstacles)
 
-        // track strip (slot color: P1=green, P2=red, P3=blue, P4=purple)
-        const trackGeo = new THREE.PlaneGeometry(0.15, MAX_VIS)
+        // track tube (slot color: P1=green, P2=red, P3=blue, P4=purple)
+        const trackPath = new THREE.LineCurve3(
+          new THREE.Vector3(0, 0, -MAX_VIS / 2),
+          new THREE.Vector3(0, 0, MAX_VIS / 2)
+        )
+        const trackGeo = new THREE.TubeGeometry(trackPath, 8, 0.0375, 12, false)
         const trackMat = new THREE.MeshBasicMaterial({
           color: GHOST_COLORS[i],
           transparent: true,
@@ -164,7 +178,6 @@ export function ARExperience({
           side: THREE.DoubleSide,
         })
         const track = new THREE.Mesh(trackGeo, trackMat)
-        track.rotation.x = -Math.PI / 2
         track.position.z = -(MAX_VIS / 2)
         gameContainer.add(track)
 
@@ -229,6 +242,7 @@ export function ARExperience({
       }
 
       const handleTap = () => {
+        if (phaseRef.current !== "playing") return
         for (const engine of engines) engine.jump()
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
@@ -237,6 +251,7 @@ export function ARExperience({
       let lastTime = performance.now()
       let wasPlaying = false
       let poseLocked = false
+      let readyRotationRef: number | null = null
       const maxRenderZ = -MAX_VIS / S
 
       renderer.setAnimationLoop(() => {
@@ -264,7 +279,44 @@ export function ARExperience({
           }
         }
 
-        if (currentPhase === "playing") {
+        if (currentPhase === "introAnim" && introStartMsRef.current != null) {
+          // capture ghost rotation on first intro frame (from lobby spin)
+          if (readyRotationRef === null) {
+            const model = ghostGroups[0].children[0]
+            readyRotationRef = model?.rotation?.y ?? 0
+          }
+
+          const t = clamp01((now - introStartMsRef.current) / INTRO_DURATION_MS)
+          const { jumpP, slideP } = getIntroAnimState(t)
+          const startZ = -0.5
+          const endZ = 0
+          const jumpHeight = 0.15
+          const capturedRot = readyRotationRef ?? 0
+
+          for (let i = 0; i < ghostGroups.length; i++) {
+            const g = ghostGroups[i]
+            const model = g.children[0]
+            if (t >= 1) {
+              g.position.set(0, 0, endZ)
+              if (model) {
+                if (AR_SPIN_AXIS === "y") model.rotation.y = capturedRot
+                else model.rotation.z = capturedRot
+              }
+              g.rotation.y = 0
+              g.rotation.z = 0
+            } else {
+              g.position.x = 0
+              g.position.y = jumpHeight * jumpArc(jumpP)
+              g.position.z = startZ + (endZ - startZ) * slideP
+              if (model) {
+                if (AR_SPIN_AXIS === "y") model.rotation.y = capturedRot
+                else model.rotation.z = capturedRot
+              }
+              g.rotation.y = 0
+              g.rotation.z = 0
+            }
+          }
+        } else if (currentPhase === "playing") {
           // reset engines on first frame of playing
           if (!wasPlaying) {
             for (const engine of engines) engine.reset(seedRef.current)
@@ -302,8 +354,12 @@ export function ARExperience({
               onPlayerDeathRef.current(i, state.elapsed)
             }
           }
-        } else {
-          // idle: float ghost, obstacles already cleared above
+        } else if (currentPhase === "lobby") {
+          readyRotationRef = null
+        }
+
+        if (currentPhase !== "introAnim" && currentPhase !== "playing") {
+          // idle: float ghost (lobby), obstacles already cleared above
           wasPlaying = false
           for (const group of ghostGroups) {
             const model = group.children[0]
@@ -323,7 +379,7 @@ export function ARExperience({
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()
-        obstacleMaterial.dispose()
+        for (const mat of obstacleMaterials) mat.dispose()
       }
     }
 

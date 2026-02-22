@@ -66,11 +66,9 @@ export function ARGameRunner({
       const engines: (RunnerEngine | null)[] = []
       const ghostGroups: THREE.Group[] = []
       const obstaclePoolsPerTarget: THREE.Mesh[][] = []
+      const obstacleMaterials: THREE.MeshStandardMaterial[] = []
 
       const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
-      const obstacleMaterial = new THREE.MeshStandardMaterial({
-        color: 0x888888,
-      })
 
       for (let i = 0; i < NUM_TARGETS; i++) {
         const anchor = mindarThree.addAnchor(i)
@@ -86,9 +84,11 @@ export function ARGameRunner({
         ghostGroups.push(ghostGroup)
 
         // obstacle pool
+        const obstacleMat = new THREE.MeshStandardMaterial({ color: GHOST_COLORS[i] })
+        obstacleMaterials.push(obstacleMat)
         const obstacles: THREE.Mesh[] = []
         for (let j = 0; j < OBSTACLES_PER_PLAYER; j++) {
-          const mesh = new THREE.Mesh(boxGeometry, obstacleMaterial)
+          const mesh = new THREE.Mesh(boxGeometry, obstacleMat)
           mesh.visible = false
           gameContainer.add(mesh)
           obstacles.push(mesh)
@@ -184,7 +184,7 @@ export function ARGameRunner({
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()
-        obstacleMaterial.dispose()
+        for (const mat of obstacleMaterials) mat.dispose()
       }
     }
 
