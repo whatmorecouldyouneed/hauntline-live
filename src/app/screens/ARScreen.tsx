@@ -132,6 +132,25 @@ export function ARScreen({
   useEffect(() => {
     if (!lastEvent || singlePlayerAR) return
     if (lastEvent.type === "start") {
+      // #region agent log
+      fetch("http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "12be76" },
+        body: JSON.stringify({
+          sessionId: "12be76",
+          location: "ARScreen.tsx:start-effect",
+          message: "received start, transitioning to introAnim",
+          data: {
+            seed: lastEvent.seed,
+            startTime: lastEvent.startTime,
+            roomStatePhase: roomState?.phase,
+            roomStatePlayerCount: roomState ? Object.keys(roomState.players).length : 0,
+          },
+          timestamp: Date.now(),
+          hypothesisId: "H4",
+        }),
+      }).catch(() => {})
+      // #endregion
       setGameSeed(lastEvent.seed)
       setIntroStartMs(performance.now())
       setServerStartTime(lastEvent.startTime)
@@ -198,6 +217,27 @@ export function ARScreen({
     }
     setSlots((prev) => {
       const next = prev.map((s, i) => (i === 0 ? { ...s, ready: true } : s))
+      // #region agent log
+      const detectedSlot = prev.find((s) => s.detected)
+      fetch("http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "12be76" },
+        body: JSON.stringify({
+          sessionId: "12be76",
+          location: "ARScreen.tsx:handleReady",
+          message: "handleReady",
+          data: {
+            singlePlayerAR,
+            roomCode,
+            detectedTargetIndex: detectedSlot?.targetIndex,
+            slotCount: prev.length,
+            readySlots: next.filter((s) => s.ready).map((s) => s.targetIndex),
+          },
+          timestamp: Date.now(),
+          hypothesisId: "H3",
+        }),
+      }).catch(() => {})
+      // #endregion
       const detected = next.filter((s) => s.detected)
       const readyToStart = detected.length > 0 && detected.every((s) => s.ready)
       if (readyToStart && singlePlayerAR) {
@@ -406,7 +446,8 @@ export function ARScreen({
 
       {isSpectating && (
         <div className="ar-spectate-overlay">
-          <p>you died — spectating</p>
+          <p>you died</p>
+          <span className="spectate-sub">spectating others...</span>
         </div>
       )}
 
