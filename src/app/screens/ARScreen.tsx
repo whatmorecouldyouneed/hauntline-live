@@ -7,6 +7,7 @@ import { GHOST_COLORS } from "../../game/meshes"
 import { toScore } from "../../utils/score"
 import { submitScore } from "../../utils/leaderboard"
 import { INTRO_DURATION_MS } from "../../game/introAnim"
+import { startBgm } from "../../utils/audio"
 import type { ARPlayerSlot, ARPhase } from "../../types/ar"
 
 const PLAYER_LABELS = ["P1", "P2", "P3", "P4"]
@@ -70,6 +71,7 @@ export function ARScreen({
     !singlePlayerAR && roomCode ? roomCode : null
   )
   const [phase, setPhase] = useState<ARPhase>("scanning")
+  const [arReady, setArReady] = useState(false)
   const [slots, setSlots] = useState<ARPlayerSlot[]>(() =>
     createSlots(playerName, singlePlayerAR)
   )
@@ -290,9 +292,22 @@ export function ARScreen({
     )
   }, [])
 
+  const handleArReady = useCallback(() => {
+    setArReady(true)
+    // defer BGM to avoid crash when started immediately after camera init
+    setTimeout(() => {
+      try {
+        startBgm()
+      } catch {
+        /* ignore */
+      }
+    }, 1500)
+  }, [])
+
   const handleRematch = useCallback(() => {
     hasSubmittedScoreRef.current = false
     lastJoinTargetRef.current = null
+    setArReady(false)
     if (!singlePlayerAR && roomCode) {
       send({ type: "rematch" })
     }
@@ -335,6 +350,7 @@ export function ARScreen({
           phase={phase}
           introStartMs={introStartMs}
           onMarkersUpdate={handleMarkersUpdate}
+          onArReady={handleArReady}
           seed={gameSeed}
           onPlayerDeath={handlePlayerDeath}
           onScoreUpdate={handleScoreUpdate}
@@ -379,7 +395,13 @@ export function ARScreen({
         </div>
       )}
 
-      {phase === "scanning" && detectedCount === 0 && (
+      {!arReady && (
+        <div className="ar-loading-overlay">
+          <p>loading AR...</p>
+        </div>
+      )}
+
+      {arReady && phase === "scanning" && detectedCount === 0 && (
         <div className="ar-scanning-overlay">
           <p>{singlePlayerAR ? "point at a marker to start" : "scanning for markers..."}</p>
         </div>

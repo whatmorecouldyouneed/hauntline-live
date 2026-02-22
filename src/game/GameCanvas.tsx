@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { RunnerEngine } from "./engine/RunnerEngine"
+import { playTap, playDeath } from "../utils/audio"
 import { getBackgroundTexture } from "./characterSelectAssets"
 import {
   loadCharacterModel,
@@ -112,7 +113,7 @@ export function GameCanvas({
       // track: cylinder segments with overlap
       const trackColor = GHOST_COLORS[characterIndex]
       const SEGMENT_LENGTH = 18
-      const SEGMENT_OVERLAP = 2
+      const SEGMENT_OVERLAP = 2.3
       const NUM_TRACK_SEGMENTS = 6
       const trackRadius = 0.125
       const trackSegments: THREE.Mesh[] = []
@@ -219,6 +220,7 @@ export function GameCanvas({
       onElapsed?.(state.elapsed)
 
       if (!state.alive) {
+        playDeath()
         cancelAnimationFrame(frameId)
         onDeath(state.elapsed)
         return
@@ -229,7 +231,10 @@ export function GameCanvas({
 
       handleTap = () => {
         if (!startedRef.current) return
-        engine.jump()
+        if (engine.alive) {
+          engine.jump()
+          playTap()
+        }
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
       container.addEventListener("pointerdown", handleTap)

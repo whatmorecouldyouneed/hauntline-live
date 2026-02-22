@@ -1,6 +1,7 @@
 import eruda from "eruda"
 
-eruda.init()
+// defer init until after dom/react mount so AR camera can initialize first
+requestAnimationFrame(() => eruda.init())
 
 // preload background images immediately to reduce paint flash on load
 ;(function preloadBackgrounds() {

@@ -34,20 +34,26 @@ export function useRoom(roomId: string | null): UseRoomReturn {
     socket.addEventListener("close", () => setConnected(false))
 
     socket.addEventListener("message", (e) => {
-      const msg = JSON.parse(e.data as string) as ServerMsg
-      setLastEvent(msg)
+      try {
+        const msg = JSON.parse(e.data as string) as ServerMsg
+        setLastEvent(msg)
 
-      if (msg.type === "state") {
-        // ensure new reference so React/react-query sees the update and merge effect runs
-        setRoomState(JSON.parse(JSON.stringify(msg.state)))
+        if (msg.type === "state") {
+          setRoomState(JSON.parse(JSON.stringify(msg.state)))
+        }
+      } catch {
+        /* ignore malformed messages */
       }
     })
+
+    socket.addEventListener("error", () => setConnected(false))
 
     return () => {
       socket.close()
       socketRef.current = null
       setConnected(false)
       setRoomState(null)
+      setLastEvent(null)
     }
   }, [roomId])
 

@@ -46,7 +46,7 @@ export default class HauntlineServer implements Party.Server {
           alive: true,
           score: 0,
         }
-        this.broadcast({ type: "state", state: this.state })
+        this.broadcastState()
         break
 
       case "ready": {
@@ -58,20 +58,22 @@ export default class HauntlineServer implements Party.Server {
         if (players.length >= 2 && players.every((p) => p.ready)) {
           this.state.phase = "playing"
           this.state.startTime = Date.now()
-          this.broadcast({
-            type: "start",
-            seed: this.state.seed,
-            startTime: this.state.startTime,
-          })
+          this.room.broadcast(
+            JSON.stringify({
+              type: "start",
+              seed: this.state.seed,
+              startTime: this.state.startTime,
+            })
+          )
         } else {
-          this.broadcast({ type: "state", state: this.state })
+          this.broadcastState()
         }
         break
       }
 
       case "jump":
-        this.broadcast(
-          { type: "playerJump", playerId: sender.id },
+        this.room.broadcast(
+          JSON.stringify({ type: "playerJump", playerId: sender.id }),
           [sender.id]
         )
         break
@@ -81,17 +83,19 @@ export default class HauntlineServer implements Party.Server {
           this.state.players[sender.id].alive = false
           this.state.players[sender.id].score = msg.score
         }
-        this.broadcast({
-          type: "playerDeath",
-          playerId: sender.id,
-          score: msg.score,
-        })
+        this.room.broadcast(
+          JSON.stringify({
+            type: "playerDeath",
+            playerId: sender.id,
+            score: msg.score,
+          })
+        )
         const allDead = Object.values(this.state.players).every(
           (p) => !p.alive
         )
         if (allDead) {
           this.state.phase = "results"
-          this.broadcast({ type: "state", state: this.state })
+          this.broadcastState()
         }
         break
       }
@@ -103,7 +107,7 @@ export default class HauntlineServer implements Party.Server {
           p.score = 0
         }
         this.state.phase = "lobby"
-        this.broadcast({ type: "state", state: this.state })
+        this.broadcastState()
         break
       }
     }
@@ -111,15 +115,13 @@ export default class HauntlineServer implements Party.Server {
 
   onClose(connection: Party.Connection) {
     delete this.state.players[connection.id]
-    this.broadcast({ type: "state", state: this.state })
+    this.broadcastState()
   }
 
-  private broadcast(msg: unknown, exclude?: string[]) {
-    const data = JSON.stringify(msg)
-    for (const conn of this.room.getConnections()) {
-      if (exclude && exclude.includes(conn.id)) continue
-      conn.send(data)
-    }
+  private broadcastState() {
+    this.room.broadcast(
+      JSON.stringify({ type: "state", state: this.state })
+    )
   }
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { GameCanvas } from "../../game/GameCanvas"
+import { startBgm } from "../../utils/audio"
 import { toScore } from "../../utils/score"
 import { GHOST_COLORS } from "../../game/meshes"
 import { INTRO_DURATION_MS } from "../../game/introAnim"
@@ -23,6 +24,10 @@ export function GameRun({ onDeath, characterIndex = 0 }: GameRunProps) {
     nonce: performance.now(),
   }))
   const hasStartedRef = useRef(false)
+
+  useEffect(() => {
+    startBgm()
+  }, [])
 
   // single RAF tick for timestamp-driven countdown
   useEffect(() => {

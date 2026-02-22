@@ -734,6 +734,25 @@ body:has(.game-run) {
   z-index: 1 !important;
 }
 
+.ar-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.ar-loading-overlay p {
+  font-size: 1rem;
+  color: #00ff88;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
 .ar-scanning-overlay {
   position: absolute;
   inset: 0;
@@ -750,6 +769,40 @@ body:has(.game-run) {
   background: rgba(0, 0, 0, 0.6);
   padding: 0.5rem 1rem;
   border-radius: 8px;
+}
+
+/* global mute button - top left by default, top right when back button present */
+.global-mute-btn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 25;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  text-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.has-top-back .global-mute-btn {
+  left: auto;
+  right: 1rem;
+}
+
+.global-mute-btn:hover {
+  color: #e0e0e0;
+}
+
+.global-mute-btn .mute-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .ar-back-btn {

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react"
+import { AudioProvider, useAudio } from "./context/AudioContext"
 import { DesktopGate } from "./app/screens/DesktopGate"
 import { preloadCharacterSelectAssets } from "./game/characterSelectAssets"
 import { Home } from "./app/screens/Home"
@@ -16,7 +17,28 @@ import type { Player } from "./types/game"
 import type { CharacterIndex } from "./game/meshes"
 import "./App.css"
 
-// TODO: online room state sync via PartyKit
+function GlobalMuteButton() {
+  const audio = useAudio()
+  if (!audio) return null
+  return (
+    <button
+      type="button"
+      onClick={audio.toggleMuted}
+      className="btn btn-secondary global-mute-btn"
+      aria-label={audio.muted ? "unmute" : "mute"}
+    >
+      {audio.muted ? (
+        <svg className="mute-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 9v6h4l5 5V4L7 9H3zM16.59 12L14 9.41 15.41 8 18 10.59 20.59 8 22 9.41 19.41 12 22 14.59 20.59 16 18 13.41 15.41 16 14 14.59 16.59 12z" />
+        </svg>
+      ) : (
+        <svg className="mute-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+        </svg>
+      )}
+    </button>
+  )
+}
 
 type Screen =
   | "home"
@@ -164,8 +186,11 @@ export default function App() {
   }, [screen])
 
   return (
-    <DesktopGate>
-      <div className="app">
+    <AudioProvider>
+      <div className={screen === "ar" ? "has-top-back" : ""}>
+        <GlobalMuteButton />
+        <DesktopGate>
+        <div className="app">
         {screen === "home" && (
           <Home onPlay={goName} onViewLeaderboard={goToLeaderboard} />
         )}
@@ -236,7 +261,9 @@ export default function App() {
         {screen === "leaderboard" && (
           <Leaderboard onBack={goHome} />
         )}
+        </div>
+        </DesktopGate>
       </div>
-    </DesktopGate>
+    </AudioProvider>
   )
 }
