@@ -2,6 +2,15 @@ import eruda from "eruda"
 
 eruda.init()
 
+// preload background images immediately to reduce paint flash on load
+;(function preloadBackgrounds() {
+  const urls = ["/cyber-background.png", "/cyber-background-desktop.png"]
+  for (const url of urls) {
+    const img = new Image()
+    img.src = url
+  }
+})()
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

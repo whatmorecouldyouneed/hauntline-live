@@ -22,6 +22,8 @@ export function ARLobby({
     singlePlayerAR
       ? players.filter((p) => p.detected)
       : players.filter((p) => p.detected || p.name)
+  const totalPlayers = visible.length
+  const readyCount = visible.filter((p) => p.ready).length
 
   if (countdown !== null) {
     return (
@@ -38,6 +40,11 @@ export function ARLobby({
       {!singlePlayerAR && (
         <p className="ar-lobby-rules">
           everyone must ready. when you die, spectate until all players are out.
+        </p>
+      )}
+      {!singlePlayerAR && totalPlayers > 0 && (
+        <p className="ar-lobby-ready-count">
+          {readyCount}/{totalPlayers} players ready
         </p>
       )}
       <div className="ar-player-cards">

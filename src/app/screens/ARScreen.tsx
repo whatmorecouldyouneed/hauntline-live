@@ -101,10 +101,20 @@ export function ARScreen({
     if (roomState.phase === "lobby" && phase !== "introAnim" && phase !== "countdown" && phase !== "playing") {
       setPhase("lobby")
     }
+    // when joiner connects and room has other players, show lobby immediately (don't require marker detection)
+    if (
+      !singlePlayerAR &&
+      roomState &&
+      Object.keys(roomState.players).length > 0 &&
+      phase === "scanning" &&
+      roomState.phase === "lobby"
+    ) {
+      setPhase("lobby")
+    }
     if (roomState.phase === "results") {
       setPhase("results")
     }
-  }, [singlePlayerAR, roomState?.phase, phase])
+  }, [singlePlayerAR, roomState, roomState?.phase, phase])
 
   // send join when connected and have a detected marker (multiplayer)
   useEffect(() => {
@@ -415,7 +425,7 @@ export function ARScreen({
                 </div>
               ))}
           </div>
-          <div className="screen-actions">
+          <div className="screen-actions ar-results-actions">
             {onViewLeaderboard && (
               <button
                 type="button"
