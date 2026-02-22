@@ -40,7 +40,7 @@ interface ARExperienceProps {
   seed: number
   onPlayerDeath: (targetIndex: number, score: number) => void
   onScoreUpdate: (targetIndex: number, score: number) => void
-  playerSlots: { targetIndex: number; detected: boolean }[]
+  playerSlots: { targetIndex: number; detected: boolean; name?: string }[]
   recenterSignal?: number
   /** ref updated when remote player jumps; engine for that targetIndex will jump */
   remoteJumpsRef?: React.MutableRefObject<Set<number>>
@@ -391,9 +391,12 @@ export function ARExperience({
 
           const slots = playerSlotsRef.current
           const isSinglePlayer = slots.length === 1
-          const activeIndices = isSinglePlayer && slots[0]
+          // only run engines for players in session (joined); avoids empty slots triggering death
+          const localTargetIndex = slots.find((s) => s.detected)?.targetIndex ?? slots[0]?.targetIndex ?? 0
+          const sessionIndices = isSinglePlayer && slots[0]
             ? [slots[0].targetIndex]
-            : Array.from({ length: NUM_TARGETS }, (_, i) => i)
+            : [...new Set(slots.filter((s) => s.name).map((s) => s.targetIndex))]
+          const activeIndices = sessionIndices.length > 0 ? sessionIndices : [localTargetIndex]
 
           for (const i of activeIndices) {
             const engine = engines[i]
@@ -422,12 +425,14 @@ export function ARExperience({
 
             onScoreUpdateRef.current(i, state.elapsed)
             if (!state.alive) {
-              playDeath()
-              shakeIntensity = 0.08
-              const worldPos = new THREE.Vector3()
-              ghostGroups[i].getWorldPosition(worldPos)
-              spawnDeathParticles(worldPos, GHOST_COLORS[i % GHOST_COLORS.length])
-              onPlayerDeathRef.current(i, state.elapsed)
+              if (isSinglePlayer || i === localTargetIndex) {
+                playDeath()
+                shakeIntensity = 0.08
+                const worldPos = new THREE.Vector3()
+                ghostGroups[i].getWorldPosition(worldPos)
+                spawnDeathParticles(worldPos, GHOST_COLORS[i % GHOST_COLORS.length])
+                onPlayerDeathRef.current(i, state.elapsed)
+              }
             }
           }
         }

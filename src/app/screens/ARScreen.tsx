@@ -114,7 +114,7 @@ export function ARScreen({
     ) {
       setPhase("lobby")
     }
-    if (roomState.phase === "results") {
+    if (roomState.phase === "results" && phase === "playing") {
       setPhase("results")
     }
   }, [singlePlayerAR, roomState, roomState?.phase, phase])
@@ -370,7 +370,7 @@ export function ARScreen({
 
       {phase !== "results" && !singlePlayerAR && (
         <div className="ar-marker-hud">
-          {slots.map((s) => (
+          {(phase === "playing" ? slots.filter((s) => s.name) : slots).map((s) => (
             <div
               key={s.targetIndex}
               className={`marker-slot ${s.detected ? "detected" : ""} ${s.name ? "joined" : ""}`}
@@ -442,8 +442,7 @@ export function ARScreen({
         <div className="ar-overlay ar-results">
           <h2 className="screen-title">results</h2>
           <div className="ar-results-list">
-            {slots
-              .filter((s) => s.detected || s.name)
+            {(singlePlayerAR ? slots.filter((s) => s.detected) : slots.filter((s) => s.name))
               .sort((a, b) => b.score - a.score)
               .map((s, i) => (
                 <div key={s.targetIndex} className="ar-result-row">

@@ -90,10 +90,10 @@ export default class HauntlineServer implements Party.Server {
             score: msg.score,
           })
         )
-        const allDead = Object.values(this.state.players).every(
-          (p) => !p.alive
-        )
-        if (allDead) {
+        // only go to results when everyone is dead (game continues for survivors)
+        const players = Object.values(this.state.players)
+        const anyAlive = players.some((p) => p.alive)
+        if (players.length > 0 && !anyAlive) {
           this.state.phase = "results"
           this.broadcastState()
         }
