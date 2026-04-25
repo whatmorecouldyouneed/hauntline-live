@@ -144,6 +144,7 @@ export function ARGameRunner({
       container.addEventListener("click", handleTap)
 
       let lastTime = performance.now()
+      const deathHapticFired = new Set<number>()
 
       renderer.setAnimationLoop(() => {
         const now = performance.now()
@@ -178,6 +179,11 @@ export function ARGameRunner({
           onScoreUpdateRef.current(i, state.elapsed)
 
           if (!state.alive) {
+            if (!deathHapticFired.has(i)) {
+              deathHapticFired.add(i)
+              console.log("[haptics] ar-runner: death → trigger(\"error\")", { targetIndex: i })
+              void trigger("error")
+            }
             onPlayerDeathRef.current(i, state.elapsed)
           }
         }

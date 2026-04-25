@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   fetchLeaderboard,
   type LeaderboardEntry,
@@ -6,40 +6,108 @@ import {
 
 interface LeaderboardProps {
   onBack: () => void
+  currentPlayerName?: string
 }
 
-export function Leaderboard({ onBack }: LeaderboardProps) {
+export function Leaderboard({ onBack, currentPlayerName }: LeaderboardProps) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchLeaderboard()
-      .then(setEntries)
-      .catch(() => setError("Failed to load leaderboard"))
-      .finally(() => setLoading(false))
+  const load = useCallback(async (isRefresh: boolean) => {
+    if (isRefresh) setRefreshing(true)
+    else setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchLeaderboard()
+      setEntries(data)
+    } catch {
+      setError("failed to load leaderboard")
+    } finally {
+      if (isRefresh) setRefreshing(false)
+      else setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    void load(false)
+  }, [load])
+
+  const me = currentPlayerName?.trim().toLowerCase() ?? ""
+  const busy = loading || refreshing
 
   return (
     <div className="screen leaderboard-screen">
       <h2 className="screen-title">leaderboard</h2>
-      {loading && <p className="leaderboard-loading">loading...</p>}
-      {error && <p className="leaderboard-error">{error}</p>}
-      {!loading && !error && (
-        <ol className="leaderboard">
-          {entries.length === 0 ? (
-            <li className="leaderboard-empty">no scores yet</li>
-          ) : (
-            entries.map((e, i) => (
-              <li key={`${e.name}-${e.score}-${i}`} className="leaderboard-row">
-                <span className="rank">{i + 1}</span>
-                <span className="name">{e.name}</span>
-                <span className="score">{e.score}</span>
-              </li>
-            ))
-          )}
-        </ol>
+      <div className="leaderboard-toolbar">
+        <span className="leaderboard-count">
+          {entries.length > 0 ? `top ${entries.length}` : ""}
+        </span>
+        <button
+          type="button"
+          className="leaderboard-refresh"
+          onClick={() => void load(true)}
+          disabled={busy}
+          aria-label="refresh leaderboard"
+        >
+          {refreshing ? "refreshing…" : "refresh"}
+        </button>
+      </div>
+
+      {loading && <p className="leaderboard-loading">loading…</p>}
+
+      {error && !loading && (
+        <div className="leaderboard-error-block">
+          <p className="leaderboard-error">{error}</p>
+          <button
+            type="button"
+            className="btn btn-secondary leaderboard-retry"
+            onClick={() => void load(true)}
+            disabled={busy}
+          >
+            try again
+          </button>
+        </div>
       )}
+
+      {!loading && !error && (
+        <div className="leaderboard-list-wrap" role="region" aria-label="leaderboard scroll">
+          {entries.length === 0 ? (
+            <p className="leaderboard-empty">no scores yet — go set one</p>
+          ) : (
+            <ol className="leaderboard">
+              {entries.map((e, i) => {
+                const rank = i + 1
+                const isMe = !!me && e.name.trim().toLowerCase() === me
+                const topClass =
+                  rank === 1 ? "is-top1"
+                  : rank === 2 ? "is-top2"
+                  : rank === 3 ? "is-top3"
+                  : ""
+                const rowClass = [
+                  "leaderboard-row",
+                  topClass,
+                  isMe ? "is-me" : "",
+                ].filter(Boolean).join(" ")
+                return (
+                  <li key={`${e.name}-${e.score}-${i}`} className={rowClass}>
+                    <span className="rank" aria-label={`rank ${rank}`}>
+                      {rank}
+                    </span>
+                    <span className="name" title={e.name}>
+                      {e.name}
+                      {isMe && <span className="leaderboard-you"> · you</span>}
+                    </span>
+                    <span className="score">{e.score.toLocaleString()}</span>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
+      )}
+
       <div className="screen-actions">
         <button type="button" onClick={onBack} className="btn btn-secondary">
           Back

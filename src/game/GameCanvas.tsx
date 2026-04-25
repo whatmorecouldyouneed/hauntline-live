@@ -239,6 +239,8 @@ export function GameCanvas({
       onElapsed?.(state.elapsed)
 
       if (!state.alive) {
+        console.log("[haptics] game canvas: death → trigger(\"error\")")
+        void trigger("error")
         playDeath()
         cancelAnimationFrame(frameId)
         onDeath(state.elapsed)
@@ -277,7 +279,7 @@ export function GameCanvas({
       trackGeometry?.dispose()
       trackMaterial?.dispose()
     }
-  }, [onDeath, onElapsed, characterIndex])
+  }, [onDeath, onElapsed, characterIndex, trigger])
 
   return (
     <div

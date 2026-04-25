@@ -259,7 +259,7 @@ export default function App() {
           />
         )}
         {screen === "leaderboard" && (
-          <Leaderboard onBack={goHome} />
+          <Leaderboard onBack={goHome} currentPlayerName={playerName} />
         )}
         </div>
         </DesktopGate>

@@ -278,6 +278,7 @@ export function ARExperience({
       let lastTime = performance.now()
       let wasPlaying = false
       let poseLocked = false
+      const deathHapticFired = new Set<number>()
       const maxRenderZ = -MAX_VIS / S - trackBackOffset / S
 
       let shakeIntensity = 0
@@ -435,6 +436,11 @@ export function ARExperience({
                 // #region agent log
                 fetch('http://127.0.0.1:7927/ingest/8f1c4d81-ffd0-4929-98ed-0d2bd56ad55d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12be76'},body:JSON.stringify({sessionId:'12be76',location:'ARExperience.tsx:death',message:'calling onPlayerDeath',data:{targetIndex:i,score:state.elapsed,isLocal:i===localTargetIndex},hypothesisId:'D',timestamp:Date.now()})}).catch(()=>{});
                 // #endregion
+                if (!deathHapticFired.has(i)) {
+                  deathHapticFired.add(i)
+                  console.log("[haptics] ar: death → trigger(\"error\")", { targetIndex: i })
+                  void trigger("error")
+                }
                 playDeath()
                 shakeIntensity = 0.08
                 const worldPos = new THREE.Vector3()
