@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { isMobile } from "../../utils/device"
 import { generateQRDataUrl } from "../../utils/qr"
+import { HapticButton } from "../../components/HapticButton"
 
 const CANONICAL_URL = "https://hauntline.live"
 
@@ -36,9 +37,9 @@ export function DesktopGate({ children }: DesktopGateProps) {
       {qrUrl && (
         <img src={qrUrl} alt="QR code" className="gate-qr" />
       )}
-      <button type="button" onClick={handleCopy} className="btn btn-primary">
+      <HapticButton type="button" onClick={handleCopy} className="btn btn-primary">
         Copy link
-      </button>
+      </HapticButton>
     </div>
   )
 }

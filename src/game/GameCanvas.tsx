@@ -45,15 +45,14 @@ export function GameCanvas({
   introStartMsRef.current = introStartMs
   startedRef.current = started
 
-  // match haptics.lochie.me: onClick + trigger() default. pointerdown can break the
-  // library’s click-based fallback when navigator.vibrate is missing (e.g. ios safari).
-  const onGameCanvasClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (e.button !== 0) return
+  // pointerdown for snappier feel — vibration api works the same on android, and ios
+  // does not vibrate from any event so we lose nothing on ios. dedupe via primary button.
+  const onJumpPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return
       if (!startedRef.current) return
       const engine = engineRef.current
       if (!engine?.alive) return
-      console.log("[haptics] game canvas: jump tap → trigger() default")
       void trigger()
       engine.jump()
       playTap()
@@ -177,6 +176,9 @@ export function GameCanvas({
       const obstacleMeshes = createObstaclePool(scene, 30, GHOST_COLORS[characterIndex])
 
       let lastTime = performance.now()
+      // throttle onElapsed → react setState to ~10Hz (score precision is 0.1s)
+      let lastElapsedReportMs = 0
+      const ELAPSED_REPORT_INTERVAL_MS = 100
 
       const startZ = PLAYER_Z + 1.2
       // model has rotateY: Math.PI (faces -Z/obstacles); group rotation adds on top. start facing camera, end at 0 = obstacles
@@ -236,11 +238,14 @@ export function GameCanvas({
         }
       }
 
-      onElapsed?.(state.elapsed)
+      if (now - lastElapsedReportMs >= ELAPSED_REPORT_INTERVAL_MS) {
+        lastElapsedReportMs = now
+        onElapsed?.(state.elapsed)
+      }
 
       if (!state.alive) {
-        console.log("[haptics] game canvas: death → trigger(\"error\")")
-        void trigger("error")
+        // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
+        void trigger([{ duration: 1000 }], { intensity: 1 })
         playDeath()
         cancelAnimationFrame(frameId)
         onDeath(state.elapsed)
@@ -285,7 +290,7 @@ export function GameCanvas({
     <div
       ref={containerRef}
       className="game-canvas"
-      onClick={onGameCanvasClick}
+      onPointerDown={onJumpPointerDown}
     />
   )
 }

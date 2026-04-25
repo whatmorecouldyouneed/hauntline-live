@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { GameCanvas } from "../../game/GameCanvas"
+import { HapticButton } from "../../components/HapticButton"
 import { startBgm } from "../../utils/audio"
 import { toScore } from "../../utils/score"
 import { GHOST_COLORS } from "../../game/meshes"
@@ -18,7 +19,6 @@ export function GameRun({ onDeath, characterIndex = 0 }: GameRunProps) {
   const [countdown, setCountdown] = useState<number | null>(null)
   const [started, setStarted] = useState(false)
   const [paused, setPaused] = useState(false)
-  const [nowMs, setNowMs] = useState(0)
   const [introState, setIntroState] = useState(() => ({
     startMs: performance.now(),
     nonce: performance.now(),
@@ -29,41 +29,39 @@ export function GameRun({ onDeath, characterIndex = 0 }: GameRunProps) {
     startBgm()
   }, [])
 
-  // single RAF tick for timestamp-driven countdown
-  useEffect(() => {
-    let raf: number
-    const tick = () => {
-      const now = performance.now()
-      setNowMs(now)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
+  // event-driven countdown: only schedules a timer for the next visible tick
+  // (vs a 60hz raf calling setState every frame). much smoother on weak devices.
   useEffect(() => {
     if (paused || hasStartedRef.current) return
-    const introStartMs = introState.startMs
-    const countdownStartMs = introStartMs + INTRO_DURATION_MS
+    const countdownStartMs = introState.startMs + INTRO_DURATION_MS
     const playStartMs = countdownStartMs + COUNTDOWN_MS
+    let timer: number | undefined
 
-    if (nowMs >= playStartMs) {
-      if (!hasStartedRef.current) {
+    const tick = () => {
+      const now = performance.now()
+      if (now >= playStartMs) {
         hasStartedRef.current = true
         setStarted(true)
         setCountdown(null)
+        return
       }
-      return
+      if (now < countdownStartMs) {
+        setCountdown(null)
+        timer = window.setTimeout(tick, Math.max(8, countdownStartMs - now))
+        return
+      }
+      const remaining = Math.max(1, Math.ceil((playStartMs - now) / 1000))
+      setCountdown(remaining)
+      // wake up exactly when the next integer second boundary arrives
+      const nextBoundaryMs = playStartMs - (remaining - 1) * 1000
+      timer = window.setTimeout(tick, Math.max(8, nextBoundaryMs - now))
     }
 
-    if (nowMs < countdownStartMs) {
-      setCountdown(null)
-      return
+    tick()
+    return () => {
+      if (timer !== undefined) clearTimeout(timer)
     }
-
-    const remaining = Math.ceil((playStartMs - nowMs) / 1000)
-    setCountdown(Math.max(1, remaining))
-  }, [nowMs, paused, introState.startMs])
+  }, [paused, introState.startMs])
 
   const handlePause = () => {
     if (paused) {
@@ -112,11 +110,12 @@ export function GameRun({ onDeath, characterIndex = 0 }: GameRunProps) {
               <span className="game-hud-score">{toScore(elapsed)}</span>
             )}
           </div>
-          <button
+          <HapticButton
             type="button"
             className="game-pause-btn"
             onClick={handlePause}
             aria-label={paused ? "resume" : "pause"}
+            haptic="light"
           >
             {paused ? (
               <svg className="game-pause-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -127,7 +126,7 @@ export function GameRun({ onDeath, characterIndex = 0 }: GameRunProps) {
                 <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
               </svg>
             )}
-          </button>
+          </HapticButton>
         </div>
       )}
     </div>

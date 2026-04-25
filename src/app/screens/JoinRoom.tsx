@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { HapticButton } from "../../components/HapticButton"
 
 interface JoinRoomProps {
   onJoin: (roomCode: string) => void
@@ -35,17 +36,18 @@ export function JoinRoom({ onJoin, onBack }: JoinRoomProps) {
         maxLength={4}
       />
       <div className="screen-actions">
-        <button type="button" onClick={onBack} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
           Back
-        </button>
-        <button
+        </HapticButton>
+        <HapticButton
           type="button"
           onClick={handleSubmit}
           className="btn btn-primary"
           disabled={code.length !== 4}
+          haptic="success"
         >
           Join
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

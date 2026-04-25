@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import { AudioProvider, useAudio } from "./context/AudioContext"
+import { HapticButton } from "./components/HapticButton"
 import { DesktopGate } from "./app/screens/DesktopGate"
 import { preloadCharacterSelectAssets } from "./game/characterSelectAssets"
 import { Home } from "./app/screens/Home"
@@ -21,11 +22,12 @@ function GlobalMuteButton() {
   const audio = useAudio()
   if (!audio) return null
   return (
-    <button
+    <HapticButton
       type="button"
       onClick={audio.toggleMuted}
       className="btn btn-secondary global-mute-btn"
       aria-label={audio.muted ? "unmute" : "mute"}
+      haptic="light"
     >
       {audio.muted ? (
         <svg className="mute-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -36,7 +38,7 @@ function GlobalMuteButton() {
           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
         </svg>
       )}
-    </button>
+    </HapticButton>
   )
 }
 

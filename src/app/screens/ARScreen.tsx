@@ -9,6 +9,7 @@ import { submitScore } from "../../utils/leaderboard"
 import { INTRO_DURATION_MS } from "../../game/introAnim"
 import { startBgm } from "../../utils/audio"
 import type { ARPlayerSlot, ARPhase } from "../../types/ar"
+import { HapticButton } from "../../components/HapticButton"
 
 const PLAYER_LABELS = ["P1", "P2", "P3", "P4"]
 const NUM_SLOTS = 4
@@ -474,31 +475,36 @@ export function ARScreen({
           </div>
           <div className="screen-actions ar-results-actions">
             {onViewLeaderboard && (
-              <button
+              <HapticButton
                 type="button"
                 onClick={onViewLeaderboard}
                 className="btn btn-secondary"
               >
                 Leaderboard
-              </button>
+              </HapticButton>
             )}
-            <button type="button" onClick={handleRematch} className="btn btn-primary">
+            <HapticButton
+              type="button"
+              onClick={handleRematch}
+              className="btn btn-primary"
+              haptic="success"
+            >
               Rematch
-            </button>
-            <button type="button" onClick={onBack} className="btn btn-secondary">
+            </HapticButton>
+            <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
               Home
-            </button>
+            </HapticButton>
           </div>
         </div>
       )}
 
-      <button
+      <HapticButton
         type="button"
         onClick={onBack}
         className="btn btn-secondary ar-back-btn"
       >
         Back
-      </button>
+      </HapticButton>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react"
+import { HapticButton } from "../../components/HapticButton"
 
 interface ARHowToPlayProps {
   onPlay: () => void
@@ -57,7 +58,7 @@ export function ARHowToPlay({ onPlay, onBack }: ARHowToPlayProps) {
           </a>
         ))}
       </div>
-      <button
+      <HapticButton
         type="button"
         onClick={handleAllowCamera}
         className="btn btn-secondary ar-camera-btn"
@@ -70,19 +71,20 @@ export function ARHowToPlay({ onPlay, onBack }: ARHowToPlayProps) {
             : cameraStatus === "denied"
               ? "Camera access denied"
               : "Allow Camera Access"}
-      </button>
+      </HapticButton>
       <div className="screen-actions ar-how-to-play-actions">
-        <button type="button" onClick={onBack} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
           Back
-        </button>
-        <button
+        </HapticButton>
+        <HapticButton
           type="button"
           onClick={onPlay}
           className="btn btn-primary"
           disabled={!canPlay}
+          haptic="success"
         >
           Play
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

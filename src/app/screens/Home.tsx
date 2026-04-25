@@ -1,5 +1,6 @@
 import { useCallback } from "react"
-import { useWebHaptics } from "web-haptics/react"
+import { HapticButton } from "../../components/HapticButton"
+import { primeAudio } from "../../utils/audio"
 
 interface HomeProps {
   onPlay: () => void
@@ -7,13 +8,12 @@ interface HomeProps {
 }
 
 export function Home({ onPlay, onViewLeaderboard }: HomeProps) {
-  const { trigger } = useWebHaptics()
-
   const handlePlayClick = useCallback(() => {
-    console.log("[haptics] play button: tap → trigger() default (quick test)")
-    void trigger()
+    // warm the audio context inside this user gesture so the first in-game tap
+    // has zero perceived latency (mobile browsers suspend ctx until then)
+    primeAudio()
     onPlay()
-  }, [trigger, onPlay])
+  }, [onPlay])
 
   return (
     <div className="screen home">
@@ -21,17 +21,22 @@ export function Home({ onPlay, onViewLeaderboard }: HomeProps) {
         <span className="home-title-line home-title-haunt">HAUNT</span>
         <span className="home-title-line home-title-line-word">LINE</span>
       </h1>
-      <button type="button" onClick={handlePlayClick} className="btn btn-primary home-play-btn">
+      <HapticButton
+        type="button"
+        onClick={handlePlayClick}
+        className="btn btn-primary home-play-btn"
+        haptic="success"
+      >
         PLAY
-      </button>
+      </HapticButton>
       {onViewLeaderboard && (
-        <button
+        <HapticButton
           type="button"
           onClick={onViewLeaderboard}
           className="btn btn-secondary"
         >
           Leaderboard
-        </button>
+        </HapticButton>
       )}
       <div className="how-to-play">
         <p>mobile only</p>

@@ -1,5 +1,6 @@
 import { toScore } from "../../utils/score"
 import type { Player } from "../../types/game"
+import { HapticButton } from "../../components/HapticButton"
 
 interface ResultsProps {
   players: Player[]
@@ -30,20 +31,25 @@ export function Results({
       </ol>
       <div className="screen-actions">
         {onViewLeaderboard && (
-          <button
+          <HapticButton
             type="button"
             onClick={onViewLeaderboard}
             className="btn btn-secondary"
           >
             Leaderboard
-          </button>
+          </HapticButton>
         )}
-        <button type="button" onClick={onNewMatch} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onNewMatch} className="btn btn-secondary">
           New Match
-        </button>
-        <button type="button" onClick={onRematch} className="btn btn-primary">
+        </HapticButton>
+        <HapticButton
+          type="button"
+          onClick={onRematch}
+          className="btn btn-primary"
+          haptic="success"
+        >
           Rematch
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

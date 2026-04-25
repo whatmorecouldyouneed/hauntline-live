@@ -20,7 +20,19 @@ function getContext(): AudioContext | null {
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
   }
+  // mobile browsers suspend the context until a user gesture; resume on demand
+  if (audioContext.state === "suspended") {
+    audioContext.resume().catch(() => {})
+  }
   return audioContext
+}
+
+/**
+ * call inside any user-gesture handler (eg. tapping PLAY) to warm up the
+ * AudioContext so the first in-game SFX has no decode/resume latency.
+ */
+export function primeAudio(): void {
+  getContext()
 }
 
 function getBgm(): HTMLAudioElement | null {

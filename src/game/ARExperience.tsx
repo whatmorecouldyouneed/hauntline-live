@@ -272,13 +272,16 @@ export function ARExperience({
           onJump?.()
         }
       }
-      // click matches web-haptics demo; pointerdown can break ios fallback when no vibrate api
-      container.addEventListener("click", handleTap)
+      // pointerdown for snappier jump — vibration works the same; ios has no vibrate api anyway
+      container.addEventListener("pointerdown", handleTap)
 
       let lastTime = performance.now()
       let wasPlaying = false
       let poseLocked = false
       const deathHapticFired = new Set<number>()
+      // throttle per-target score callbacks to ~10Hz to avoid 60Hz react re-renders
+      const lastScoreReportMs: Record<number, number> = {}
+      const SCORE_REPORT_INTERVAL_MS = 100
       const maxRenderZ = -MAX_VIS / S - trackBackOffset / S
 
       let shakeIntensity = 0
@@ -430,7 +433,11 @@ export function ARExperience({
               }
             }
 
-            onScoreUpdateRef.current(i, state.elapsed)
+            const lastReport = lastScoreReportMs[i] ?? 0
+            if (now - lastReport >= SCORE_REPORT_INTERVAL_MS) {
+              lastScoreReportMs[i] = now
+              onScoreUpdateRef.current(i, state.elapsed)
+            }
             if (!state.alive) {
               if (isSinglePlayer || i === localTargetIndex) {
                 // #region agent log
@@ -438,8 +445,8 @@ export function ARExperience({
                 // #endregion
                 if (!deathHapticFired.has(i)) {
                   deathHapticFired.add(i)
-                  console.log("[haptics] ar: death → trigger(\"error\")", { targetIndex: i })
-                  void trigger("error")
+                  // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
+                  void trigger([{ duration: 1000 }], { intensity: 1 })
                 }
                 playDeath()
                 shakeIntensity = 0.08
@@ -500,7 +507,7 @@ export function ARExperience({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("click", handleTap)
+        container.removeEventListener("pointerdown", handleTap)
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()

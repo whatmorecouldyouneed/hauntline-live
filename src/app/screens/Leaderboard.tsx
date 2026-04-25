@@ -3,6 +3,7 @@ import {
   fetchLeaderboard,
   type LeaderboardEntry,
 } from "../../utils/leaderboard"
+import { HapticButton } from "../../components/HapticButton"
 
 interface LeaderboardProps {
   onBack: () => void
@@ -44,15 +45,16 @@ export function Leaderboard({ onBack, currentPlayerName }: LeaderboardProps) {
         <span className="leaderboard-count">
           {entries.length > 0 ? `top ${entries.length}` : ""}
         </span>
-        <button
+        <HapticButton
           type="button"
           className="leaderboard-refresh"
           onClick={() => void load(true)}
           disabled={busy}
           aria-label="refresh leaderboard"
+          haptic="light"
         >
           {refreshing ? "refreshing…" : "refresh"}
-        </button>
+        </HapticButton>
       </div>
 
       {loading && <p className="leaderboard-loading">loading…</p>}
@@ -60,14 +62,14 @@ export function Leaderboard({ onBack, currentPlayerName }: LeaderboardProps) {
       {error && !loading && (
         <div className="leaderboard-error-block">
           <p className="leaderboard-error">{error}</p>
-          <button
+          <HapticButton
             type="button"
             className="btn btn-secondary leaderboard-retry"
             onClick={() => void load(true)}
             disabled={busy}
           >
             try again
-          </button>
+          </HapticButton>
         </div>
       )}
 
@@ -109,9 +111,9 @@ export function Leaderboard({ onBack, currentPlayerName }: LeaderboardProps) {
       )}
 
       <div className="screen-actions">
-        <button type="button" onClick={onBack} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
           Back
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

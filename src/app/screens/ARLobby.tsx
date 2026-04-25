@@ -1,4 +1,5 @@
 import type { ARPlayerSlot } from "../../types/ar"
+import { HapticButton } from "../../components/HapticButton"
 
 interface ARLobbyProps {
   players: ARPlayerSlot[]
@@ -71,12 +72,21 @@ export function ARLobby({
 
       {!localReady && visible.length > 0 && (
         <div className="ar-lobby-actions">
-          <button type="button" onClick={onReady} className="btn btn-primary ar-lobby-btn">
+          <HapticButton
+            type="button"
+            onClick={onReady}
+            className="btn btn-primary ar-lobby-btn"
+            haptic="success"
+          >
             Ready
-          </button>
-          <button type="button" onClick={onRecenter} className="btn btn-secondary ar-lobby-btn">
+          </HapticButton>
+          <HapticButton
+            type="button"
+            onClick={onRecenter}
+            className="btn btn-secondary ar-lobby-btn"
+          >
             Recenter
-          </button>
+          </HapticButton>
         </div>
       )}
 

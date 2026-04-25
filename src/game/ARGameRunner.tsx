@@ -141,10 +141,13 @@ export function ARGameRunner({
           engine?.jump()
         }
       }
-      container.addEventListener("click", handleTap)
+      container.addEventListener("pointerdown", handleTap)
 
       let lastTime = performance.now()
       const deathHapticFired = new Set<number>()
+      // throttle per-target score callbacks to ~10Hz to avoid 60Hz react re-renders
+      const lastScoreReportMs: number[] = new Array(NUM_TARGETS).fill(0)
+      const SCORE_REPORT_INTERVAL_MS = 100
 
       renderer.setAnimationLoop(() => {
         const now = performance.now()
@@ -176,13 +179,16 @@ export function ARGameRunner({
             }
           }
 
-          onScoreUpdateRef.current(i, state.elapsed)
+          if (now - lastScoreReportMs[i] >= SCORE_REPORT_INTERVAL_MS) {
+            lastScoreReportMs[i] = now
+            onScoreUpdateRef.current(i, state.elapsed)
+          }
 
           if (!state.alive) {
             if (!deathHapticFired.has(i)) {
               deathHapticFired.add(i)
-              console.log("[haptics] ar-runner: death → trigger(\"error\")", { targetIndex: i })
-              void trigger("error")
+              // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
+              void trigger([{ duration: 1000 }], { intensity: 1 })
             }
             onPlayerDeathRef.current(i, state.elapsed)
           }
@@ -192,7 +198,7 @@ export function ARGameRunner({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("click", handleTap)
+        container.removeEventListener("pointerdown", handleTap)
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()

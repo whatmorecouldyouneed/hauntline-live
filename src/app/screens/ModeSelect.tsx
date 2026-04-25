@@ -1,3 +1,5 @@
+import { HapticButton } from "../../components/HapticButton"
+
 interface ModeSelectProps {
   playerName: string
   onSinglePlayer: () => void
@@ -19,22 +21,22 @@ export function ModeSelect({
     <div className="screen mode-select">
       <p className="mode-player-name">{playerName}</p>
       <div className="mode-buttons">
-        <button type="button" onClick={onSinglePlayer} className="btn btn-primary mode-btn">
+        <HapticButton type="button" onClick={onSinglePlayer} className="btn btn-primary mode-btn">
           Single Player
-        </button>
-        <button type="button" onClick={onSinglePlayerAR} className="btn btn-primary mode-btn">
+        </HapticButton>
+        <HapticButton type="button" onClick={onSinglePlayerAR} className="btn btn-primary mode-btn">
           Single Player (AR)
-        </button>
-        <button type="button" onClick={onCreateRoom} className="btn btn-primary mode-btn">
+        </HapticButton>
+        <HapticButton type="button" onClick={onCreateRoom} className="btn btn-primary mode-btn">
           Create Room
-        </button>
-        <button type="button" onClick={onJoinRoom} className="btn btn-primary mode-btn">
+        </HapticButton>
+        <HapticButton type="button" onClick={onJoinRoom} className="btn btn-primary mode-btn">
           Join Room
-        </button>
+        </HapticButton>
       </div>
-      <button type="button" onClick={onBack} className="btn btn-secondary">
+      <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
         Back
-      </button>
+      </HapticButton>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { toScore } from "../../utils/score"
 import { submitScore } from "../../utils/leaderboard"
+import { HapticButton } from "../../components/HapticButton"
 
 interface DeathProps {
   playerName: string
@@ -30,20 +31,25 @@ export function Death({
       <p className="death-score">score: {toScore(timeSurvived)}</p>
       <div className="screen-actions">
         {onViewLeaderboard && (
-          <button
+          <HapticButton
             type="button"
             onClick={onViewLeaderboard}
             className="btn btn-secondary"
           >
             Leaderboard
-          </button>
+          </HapticButton>
         )}
-        <button type="button" onClick={onModeSelect} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onModeSelect} className="btn btn-secondary">
           Game Mode
-        </button>
-        <button type="button" onClick={onRetry} className="btn btn-primary">
+        </HapticButton>
+        <HapticButton
+          type="button"
+          onClick={onRetry}
+          className="btn btn-primary"
+          haptic="success"
+        >
           Retry
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

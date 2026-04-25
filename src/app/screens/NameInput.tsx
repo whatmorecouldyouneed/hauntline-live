@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Filter } from "bad-words"
+import { HapticButton } from "../../components/HapticButton"
 
 const profanityFilter = new Filter()
 
@@ -45,17 +46,18 @@ export function NameInput({ initialName = "", onSubmit, onBack }: NameInputProps
       />
       {error && <p className="name-input-error">{error}</p>}
       <div className="screen-actions">
-        <button type="button" onClick={onBack} className="btn btn-secondary">
+        <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
           Back
-        </button>
-        <button
+        </HapticButton>
+        <HapticButton
           type="button"
           onClick={handleSubmit}
           className="btn btn-primary"
           disabled={!name.trim()}
+          haptic="success"
         >
           Next
-        </button>
+        </HapticButton>
       </div>
     </div>
   )

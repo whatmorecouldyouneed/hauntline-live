@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react"
 import { type CharacterIndex } from "../../game/meshes"
 import { CharacterViewer3D } from "../../game/CharacterViewer3D"
+import { HapticButton } from "../../components/HapticButton"
 
 const CHARACTER_NAMES: Record<CharacterIndex, string> = {
   0: "wisp",
@@ -63,36 +64,39 @@ export function CharacterSelect({ onSelect, onBack }: CharacterSelectProps) {
             <span className="character-select-loading-text">Loading</span>
           </div>
         )}
-        <button
+        <HapticButton
           type="button"
           className="character-arrow character-arrow-left"
           aria-label="previous character"
           onClick={goPrev}
+          haptic="light"
         >
           ‹
-        </button>
-        <button
+        </HapticButton>
+        <HapticButton
           type="button"
           className="character-arrow character-arrow-right"
           aria-label="next character"
           onClick={goNext}
+          haptic="light"
         >
           ›
-        </button>
+        </HapticButton>
       </div>
       <p className="character-display-name character-display-name-floating">{CHARACTER_NAMES[selected]}</p>
       <div className="character-select-footer">
         <div className="screen-actions">
-          <button type="button" onClick={onBack} className="btn btn-secondary">
+          <HapticButton type="button" onClick={onBack} className="btn btn-secondary">
             Back
-          </button>
-          <button
+          </HapticButton>
+          <HapticButton
             type="button"
             onClick={() => onSelect(selected)}
             className="btn btn-primary"
+            haptic="success"
           >
             Play
-          </button>
+          </HapticButton>
         </div>
       </div>
     </div>
