@@ -14,7 +14,7 @@ import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { loadCharacterModel, CHARACTER_MODELS, GHOST_COLORS } from "./meshes"
 import { clamp01, getIntroAnimState, jumpArc, INTRO_DURATION_MS } from "./introAnim"
-import { useJumpHapticTriggerRef, JUMP_HAPTIC_MS } from "./useJumpHapticTriggerRef"
+import { useJumpHapticTriggerRef, JUMP_HAPTIC_PRESET } from "./useJumpHapticTriggerRef"
 import { playTap, playDeath } from "../utils/audio"
 import type { MarkerState } from "./ARViewer"
 
@@ -268,7 +268,7 @@ export function ARExperience({
         if (eng?.alive) {
           eng.jump()
           playTap()
-          void jumpHapticRef.current(JUMP_HAPTIC_MS)
+          void jumpHapticRef.current(JUMP_HAPTIC_PRESET)
           onJump?.()
         }
       }

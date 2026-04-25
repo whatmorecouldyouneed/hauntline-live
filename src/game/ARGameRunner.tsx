@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
-import { useJumpHapticTriggerRef, JUMP_HAPTIC_MS } from "./useJumpHapticTriggerRef"
+import { useJumpHapticTriggerRef, JUMP_HAPTIC_PRESET } from "./useJumpHapticTriggerRef"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { createGhostGroup } from "./meshes"
 import { GHOST_COLORS } from "./meshes"
@@ -136,7 +136,7 @@ export function ARGameRunner({
           if (engine?.alive) anyAlive = true
           engine?.jump()
         }
-        if (anyAlive) void jumpHapticRef.current(JUMP_HAPTIC_MS)
+        if (anyAlive) void jumpHapticRef.current(JUMP_HAPTIC_PRESET)
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
       container.addEventListener("pointerdown", handleTap)

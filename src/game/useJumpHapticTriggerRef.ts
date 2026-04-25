@@ -1,8 +1,8 @@
 import { useRef } from "react"
 import { useWebHaptics } from "web-haptics/react"
 
-/** short pulse — single tap on each jump */
-export const JUMP_HAPTIC_MS = 48
+/** web-haptics built-in: two taps (see package readme) */
+export const JUMP_HAPTIC_PRESET = "success" as const
 
 /**
  * stable access to web-haptics `trigger` for handlers registered inside useEffect
