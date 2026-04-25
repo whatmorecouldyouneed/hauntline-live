@@ -266,14 +266,14 @@ export function ARExperience({
         const ti = isSinglePlayer && slots[0] ? slots[0].targetIndex : (slots[0]?.targetIndex ?? 0)
         const eng = engines[ti]
         if (eng?.alive) {
-          void trigger("success")
+          void trigger()
           eng.jump()
           playTap()
           onJump?.()
         }
       }
-      // pointerdown only — touchstart+pointerdown doubles on many phones and can muddy vibration
-      container.addEventListener("pointerdown", handleTap)
+      // click matches web-haptics demo; pointerdown can break ios fallback when no vibrate api
+      container.addEventListener("click", handleTap)
 
       let lastTime = performance.now()
       let wasPlaying = false
@@ -494,7 +494,7 @@ export function ARExperience({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("pointerdown", handleTap)
+        container.removeEventListener("click", handleTap)
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()

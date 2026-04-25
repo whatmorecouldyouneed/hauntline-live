@@ -515,6 +515,7 @@ body:has(.game-run) {
   height: 100%;
   touch-action: manipulation;
   user-select: none;
+  cursor: pointer;
 }
 
 .game-hud-row {
@@ -711,6 +712,7 @@ body:has(.game-run) {
 .ar-viewer-touch-target {
   z-index: 1;
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 /* force MindAR's video to fill and be visible */

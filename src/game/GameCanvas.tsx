@@ -45,13 +45,16 @@ export function GameCanvas({
   introStartMsRef.current = introStartMs
   startedRef.current = started
 
-  const onPointerDownJump = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.pointerType === "mouse" && e.button !== 0) return
+  // match haptics.lochie.me: onClick + trigger() default. pointerdown can break the
+  // library’s click-based fallback when navigator.vibrate is missing (e.g. ios safari).
+  const onGameCanvasClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return
       if (!startedRef.current) return
       const engine = engineRef.current
       if (!engine?.alive) return
-      void trigger("success")
+      console.log("[haptics] game canvas: jump tap → trigger() default")
+      void trigger()
       engine.jump()
       playTap()
     },
@@ -280,7 +283,7 @@ export function GameCanvas({
     <div
       ref={containerRef}
       className="game-canvas"
-      onPointerDown={onPointerDownJump}
+      onClick={onGameCanvasClick}
     />
   )
 }
