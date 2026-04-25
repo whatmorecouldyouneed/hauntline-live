@@ -129,19 +129,28 @@ export function ARGameRunner({
         return
       }
 
-      // tap to jump — all local engines jump
-      const handleTap = () => {
+      // pointerdown drives the snappy jump; click drives the haptic.
+      // web-haptics' ios fallback only fires from a real click event.
+      const handleJump = () => {
+        let anyAlive = false
+        for (const engine of engines) {
+          if (engine?.alive) anyAlive = true
+        }
+        if (!anyAlive) return
+        for (const engine of engines) {
+          engine?.jump()
+        }
+      }
+      const handleHaptic = () => {
         let anyAlive = false
         for (const engine of engines) {
           if (engine?.alive) anyAlive = true
         }
         if (!anyAlive) return
         void trigger("success")
-        for (const engine of engines) {
-          engine?.jump()
-        }
       }
-      container.addEventListener("pointerdown", handleTap)
+      container.addEventListener("pointerdown", handleJump)
+      container.addEventListener("click", handleHaptic)
 
       let lastTime = performance.now()
       const deathHapticFired = new Set<number>()
@@ -197,7 +206,8 @@ export function ARGameRunner({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("pointerdown", handleTap)
+        container.removeEventListener("pointerdown", handleJump)
+        container.removeEventListener("click", handleHaptic)
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()

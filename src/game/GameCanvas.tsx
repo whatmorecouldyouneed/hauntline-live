@@ -45,20 +45,27 @@ export function GameCanvas({
   introStartMsRef.current = introStartMs
   startedRef.current = started
 
-  // pointerdown for snappier feel — vibration api works the same on android, and ios
-  // does not vibrate from any event so we lose nothing on ios. dedupe via primary button.
+  // split the tap path: pointerdown drives the snappy gameplay (jump + sfx),
+  // click drives the haptic. web-haptics' ios fallback only triggers from a real
+  // click event, and android's navigator.vibrate also works fine from click —
+  // the haptic latency vs pointerdown is ~50ms and unnoticeable next to the jump.
   const onJumpPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType === "mouse" && e.button !== 0) return
       if (!startedRef.current) return
       const engine = engineRef.current
       if (!engine?.alive) return
-      void trigger("success")
       engine.jump()
       playTap()
     },
-    [trigger]
+    []
   )
+
+  const onJumpClick = useCallback(() => {
+    if (!startedRef.current) return
+    if (!engineRef.current?.alive) return
+    void trigger("success")
+  }, [trigger])
 
   useEffect(() => {
     const container = containerRef.current
@@ -290,6 +297,7 @@ export function GameCanvas({
       ref={containerRef}
       className="game-canvas"
       onPointerDown={onJumpPointerDown}
+      onClick={onJumpClick}
     />
   )
 }

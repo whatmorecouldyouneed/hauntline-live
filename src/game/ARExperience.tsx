@@ -259,7 +259,22 @@ export function ARExperience({
         return
       }
 
-      const handleTap = () => {
+      // pointerdown drives the snappy jump + sfx + network broadcast.
+      // click drives the haptic — web-haptics' ios fallback only fires from a
+      // real click event, and android vibration also works fine from click.
+      const handleJump = () => {
+        if (phaseRef.current !== "playing") return
+        const slots = playerSlotsRef.current
+        const isSinglePlayer = slots.length === 1
+        const ti = isSinglePlayer && slots[0] ? slots[0].targetIndex : (slots[0]?.targetIndex ?? 0)
+        const eng = engines[ti]
+        if (eng?.alive) {
+          eng.jump()
+          playTap()
+          onJump?.()
+        }
+      }
+      const handleHaptic = () => {
         if (phaseRef.current !== "playing") return
         const slots = playerSlotsRef.current
         const isSinglePlayer = slots.length === 1
@@ -267,13 +282,10 @@ export function ARExperience({
         const eng = engines[ti]
         if (eng?.alive) {
           void trigger("success")
-          eng.jump()
-          playTap()
-          onJump?.()
         }
       }
-      // pointerdown for snappier jump — vibration works the same; ios has no vibrate api anyway
-      container.addEventListener("pointerdown", handleTap)
+      container.addEventListener("pointerdown", handleJump)
+      container.addEventListener("click", handleHaptic)
 
       let lastTime = performance.now()
       let wasPlaying = false
@@ -506,7 +518,8 @@ export function ARExperience({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("pointerdown", handleTap)
+        container.removeEventListener("pointerdown", handleJump)
+        container.removeEventListener("click", handleHaptic)
         renderer.setAnimationLoop(null)
         mindarThree.stop()
         boxGeometry.dispose()
