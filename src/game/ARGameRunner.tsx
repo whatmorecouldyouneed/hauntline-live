@@ -134,11 +134,13 @@ export function ARGameRunner({
         let anyAlive = false
         for (const engine of engines) {
           if (engine?.alive) anyAlive = true
+        }
+        if (!anyAlive) return
+        void trigger("success")
+        for (const engine of engines) {
           engine?.jump()
         }
-        if (anyAlive) void trigger("success")
       }
-      container.addEventListener("touchstart", handleTap, { passive: true })
       container.addEventListener("pointerdown", handleTap)
 
       let lastTime = performance.now()
@@ -184,7 +186,6 @@ export function ARGameRunner({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("touchstart", handleTap)
         container.removeEventListener("pointerdown", handleTap)
         renderer.setAnimationLoop(null)
         mindarThree.stop()

@@ -266,13 +266,13 @@ export function ARExperience({
         const ti = isSinglePlayer && slots[0] ? slots[0].targetIndex : (slots[0]?.targetIndex ?? 0)
         const eng = engines[ti]
         if (eng?.alive) {
+          void trigger("success")
           eng.jump()
           playTap()
-          void trigger("success")
           onJump?.()
         }
       }
-      container.addEventListener("touchstart", handleTap, { passive: true })
+      // pointerdown only — touchstart+pointerdown doubles on many phones and can muddy vibration
       container.addEventListener("pointerdown", handleTap)
 
       let lastTime = performance.now()
@@ -494,7 +494,6 @@ export function ARExperience({
       })
 
       cleanupRef.current = () => {
-        container.removeEventListener("touchstart", handleTap)
         container.removeEventListener("pointerdown", handleTap)
         renderer.setAnimationLoop(null)
         mindarThree.stop()

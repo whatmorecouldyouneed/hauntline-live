@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import * as THREE from "three"
 import { useWebHaptics } from "web-haptics/react"
 import { RunnerEngine } from "./engine/RunnerEngine"
@@ -39,10 +39,24 @@ export function GameCanvas({
 }: GameCanvasProps) {
   const { trigger } = useWebHaptics()
   const containerRef = useRef<HTMLDivElement>(null)
+  const engineRef = useRef<RunnerEngine | null>(null)
   const startedRef = useRef(started)
   const introStartMsRef = useRef(introStartMs)
   introStartMsRef.current = introStartMs
   startedRef.current = started
+
+  const onPointerDownJump = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return
+      if (!startedRef.current) return
+      const engine = engineRef.current
+      if (!engine?.alive) return
+      void trigger("success")
+      engine.jump()
+      playTap()
+    },
+    [trigger]
+  )
 
   useEffect(() => {
     const container = containerRef.current
@@ -57,7 +71,6 @@ export function GameCanvas({
     let trackGeometry: THREE.BufferGeometry | undefined
     let trackMaterial: THREE.MeshBasicMaterial | undefined
     let handleResize: (() => void) | undefined
-    let handleTap: (() => void) | undefined
     let bgTex: THREE.Texture | undefined
 
     const init = async () => {
@@ -91,6 +104,7 @@ export function GameCanvas({
       }
 
       const engine = new RunnerEngine()
+      engineRef.current = engine
 
       const scene = new THREE.Scene()
       scene.background = bgTex
@@ -231,17 +245,6 @@ export function GameCanvas({
       if (renderer && camera) renderer.render(scene, camera)
       }
 
-      handleTap = () => {
-        if (!startedRef.current) return
-        if (engine.alive) {
-          engine.jump()
-          playTap()
-          void trigger("success")
-        }
-      }
-      container.addEventListener("touchstart", handleTap, { passive: true })
-      container.addEventListener("pointerdown", handleTap)
-
       handleResize = () => {
         if (!container || !camera || !renderer) return
         const newAspect = container.clientWidth / container.clientHeight
@@ -259,12 +262,9 @@ export function GameCanvas({
 
     return () => {
       cancelled = true
+      engineRef.current = null
       if (frameId !== undefined) cancelAnimationFrame(frameId)
       if (handleResize) window.removeEventListener("resize", handleResize)
-      if (handleTap) {
-        container.removeEventListener("touchstart", handleTap)
-        container.removeEventListener("pointerdown", handleTap)
-      }
       if (renderer) {
         renderer.domElement.remove()
         renderer.dispose()
@@ -274,7 +274,13 @@ export function GameCanvas({
       trackGeometry?.dispose()
       trackMaterial?.dispose()
     }
-  }, [onDeath, onElapsed, characterIndex, trigger])
+  }, [onDeath, onElapsed, characterIndex])
 
-  return <div ref={containerRef} className="game-canvas" />
+  return (
+    <div
+      ref={containerRef}
+      className="game-canvas"
+      onPointerDown={onPointerDownJump}
+    />
+  )
 }
