@@ -53,7 +53,7 @@ export function GameCanvas({
       if (!startedRef.current) return
       const engine = engineRef.current
       if (!engine?.alive) return
-      void trigger()
+      void trigger("success")
       engine.jump()
       playTap()
     },

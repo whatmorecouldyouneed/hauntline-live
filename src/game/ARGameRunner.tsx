@@ -136,7 +136,7 @@ export function ARGameRunner({
           if (engine?.alive) anyAlive = true
         }
         if (!anyAlive) return
-        void trigger()
+        void trigger("success")
         for (const engine of engines) {
           engine?.jump()
         }

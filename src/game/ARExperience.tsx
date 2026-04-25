@@ -266,7 +266,7 @@ export function ARExperience({
         const ti = isSinglePlayer && slots[0] ? slots[0].targetIndex : (slots[0]?.targetIndex ?? 0)
         const eng = engines[ti]
         if (eng?.alive) {
-          void trigger()
+          void trigger("success")
           eng.jump()
           playTap()
           onJump?.()
