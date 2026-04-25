@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
-import { useJumpHapticTriggerRef, JUMP_HAPTIC_PRESET } from "./useJumpHapticTriggerRef"
+import { useWebHaptics } from "web-haptics/react"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { createGhostGroup } from "./meshes"
 import { GHOST_COLORS } from "./meshes"
@@ -32,7 +32,7 @@ export function ARGameRunner({
 }: ARGameRunnerProps) {
   // _playerSlots reserved for future network-driven slot filtering
   void _playerSlots
-  const jumpHapticRef = useJumpHapticTriggerRef()
+  const { trigger } = useWebHaptics()
   const containerRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
 
@@ -136,7 +136,7 @@ export function ARGameRunner({
           if (engine?.alive) anyAlive = true
           engine?.jump()
         }
-        if (anyAlive) void jumpHapticRef.current(JUMP_HAPTIC_PRESET)
+        if (anyAlive) void trigger("success")
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
       container.addEventListener("pointerdown", handleTap)
@@ -200,7 +200,7 @@ export function ARGameRunner({
       cleanupRef.current?.()
       cleanupRef.current = null
     }
-  }, [seed])
+  }, [seed, trigger])
 
   return <div ref={containerRef} className="ar-viewer" />
 }

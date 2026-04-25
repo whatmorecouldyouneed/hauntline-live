@@ -14,7 +14,7 @@ import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { loadCharacterModel, CHARACTER_MODELS, GHOST_COLORS } from "./meshes"
 import { clamp01, getIntroAnimState, jumpArc, INTRO_DURATION_MS } from "./introAnim"
-import { useJumpHapticTriggerRef, JUMP_HAPTIC_PRESET } from "./useJumpHapticTriggerRef"
+import { useWebHaptics } from "web-haptics/react"
 import { playTap, playDeath } from "../utils/audio"
 import type { MarkerState } from "./ARViewer"
 
@@ -61,7 +61,7 @@ export function ARExperience({
   remoteJumpsRef,
   onJump,
 }: ARExperienceProps) {
-  const jumpHapticRef = useJumpHapticTriggerRef()
+  const { trigger } = useWebHaptics()
   const playerSlotsRef = useRef(playerSlots)
   playerSlotsRef.current = playerSlots
   const containerRef = useRef<HTMLDivElement>(null)
@@ -268,7 +268,7 @@ export function ARExperience({
         if (eng?.alive) {
           eng.jump()
           playTap()
-          void jumpHapticRef.current(JUMP_HAPTIC_PRESET)
+          void trigger("success")
           onJump?.()
         }
       }
@@ -510,7 +510,7 @@ export function ARExperience({
       cleanupRef.current?.()
       cleanupRef.current = null
     }
-  }, [updateMarker])
+  }, [updateMarker, trigger])
 
   return (
     <div
