@@ -187,8 +187,7 @@ export function ARGameRunner({
           if (!state.alive) {
             if (!deathHapticFired.has(i)) {
               deathHapticFired.add(i)
-              // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
-              void trigger([{ duration: 1000 }], { intensity: 1 })
+              void trigger("buzz")
             }
             onPlayerDeathRef.current(i, state.elapsed)
           }

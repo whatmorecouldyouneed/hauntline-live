@@ -445,8 +445,7 @@ export function ARExperience({
                 // #endregion
                 if (!deathHapticFired.has(i)) {
                   deathHapticFired.add(i)
-                  // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
-                  void trigger([{ duration: 1000 }], { intensity: 1 })
+                  void trigger("buzz")
                 }
                 playDeath()
                 shakeIntensity = 0.08

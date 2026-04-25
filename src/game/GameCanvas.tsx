@@ -244,8 +244,7 @@ export function GameCanvas({
       }
 
       if (!state.alive) {
-        // "buzz" pattern from haptics.lochie.me — long sustained vibration on death
-        void trigger([{ duration: 1000 }], { intensity: 1 })
+        void trigger("buzz")
         playDeath()
         cancelAnimationFrame(frameId)
         onDeath(state.elapsed)
