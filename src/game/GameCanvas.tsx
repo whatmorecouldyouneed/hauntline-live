@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
+import { useJumpHapticTriggerRef, JUMP_HAPTIC_MS } from "./useJumpHapticTriggerRef"
 import { RunnerEngine } from "./engine/RunnerEngine"
 import { playTap, playDeath } from "../utils/audio"
 import { getBackgroundTexture } from "./characterSelectAssets"
@@ -36,6 +37,7 @@ export function GameCanvas({
   introNonce: _introNonce = 0,
   introStartMs = 0,
 }: GameCanvasProps) {
+  const jumpHapticRef = useJumpHapticTriggerRef()
   const containerRef = useRef<HTMLDivElement>(null)
   const startedRef = useRef(started)
   const introStartMsRef = useRef(introStartMs)
@@ -234,6 +236,7 @@ export function GameCanvas({
         if (engine.alive) {
           engine.jump()
           playTap()
+          void jumpHapticRef.current(JUMP_HAPTIC_MS)
         }
       }
       container.addEventListener("touchstart", handleTap, { passive: true })
